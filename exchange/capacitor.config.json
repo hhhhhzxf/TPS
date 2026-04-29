@@ -1,0 +1,6 @@
+{
+  "appId": "com.mycampus.exchange",
+  "appName": "MY校园淘二手",
+  "webDir": "mobile-web",
+  "bundledWebRuntime": false
+}

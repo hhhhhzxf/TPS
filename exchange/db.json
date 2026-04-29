@@ -1,0 +1,764 @@
+{
+  "goods": [
+    {
+      "id": "g1777388645209545",
+      "title": "批量商品-g1777388645209545",
+      "category": "生活",
+      "price": 18,
+      "desc": "batch test",
+      "imageUrl": "",
+      "sellerId": "u24190436",
+      "sellerName": "卖家测试",
+      "tradeType": "当面交易",
+      "status": "blocked",
+      "createdAt": "2026-04-28T15:04:05.211Z",
+      "views": 0
+    },
+    {
+      "id": "g1777388645209612",
+      "title": "批量商品-g1777388645209612",
+      "category": "生活",
+      "price": 18,
+      "desc": "batch test",
+      "imageUrl": "",
+      "sellerId": "u24190436",
+      "sellerName": "卖家测试",
+      "tradeType": "当面交易",
+      "status": "blocked",
+      "createdAt": "2026-04-28T15:04:05.209Z",
+      "views": 0
+    },
+    {
+      "id": "g1777388645182629",
+      "title": "链路测试商品",
+      "category": "生活",
+      "price": 15,
+      "desc": "full flow smoke test",
+      "imageUrl": "",
+      "sellerId": "u24190436",
+      "sellerName": "卖家测试",
+      "tradeType": "当面交易",
+      "status": "blocked",
+      "createdAt": "2026-04-28T15:04:05.182Z",
+      "views": 2
+    },
+    {
+      "id": "g1777386427694760",
+      "title": "批量商品-g1777386427694760",
+      "category": "生活",
+      "price": 18,
+      "desc": "batch test",
+      "imageUrl": "",
+      "sellerId": "u24995564",
+      "sellerName": "卖家测试",
+      "tradeType": "当面交易",
+      "status": "blocked",
+      "createdAt": "2026-04-28T14:27:07.696Z",
+      "views": 0
+    },
+    {
+      "id": "g1777386427694504",
+      "title": "批量商品-g1777386427694504",
+      "category": "生活",
+      "price": 18,
+      "desc": "batch test",
+      "imageUrl": "",
+      "sellerId": "u24995564",
+      "sellerName": "卖家测试",
+      "tradeType": "当面交易",
+      "status": "blocked",
+      "createdAt": "2026-04-28T14:27:07.694Z",
+      "views": 0
+    },
+    {
+      "id": "g1777386427668538",
+      "title": "链路测试商品",
+      "category": "生活",
+      "price": 15,
+      "desc": "full flow smoke test",
+      "imageUrl": "",
+      "sellerId": "u24995564",
+      "sellerName": "卖家测试",
+      "tradeType": "当面交易",
+      "status": "blocked",
+      "createdAt": "2026-04-28T14:27:07.668Z",
+      "views": 2
+    },
+    {
+      "id": "g1777385776786341",
+      "title": "批量商品-g1777385776786341",
+      "category": "生活",
+      "price": 18,
+      "desc": "batch test",
+      "imageUrl": "",
+      "sellerId": "u24551094",
+      "sellerName": "卖家测试",
+      "tradeType": "当面交易",
+      "status": "blocked",
+      "createdAt": "2026-04-28T14:16:16.789Z",
+      "views": 0
+    },
+    {
+      "id": "g177738577678672",
+      "title": "批量商品-g177738577678672",
+      "category": "生活",
+      "price": 18,
+      "desc": "batch test",
+      "imageUrl": "",
+      "sellerId": "u24551094",
+      "sellerName": "卖家测试",
+      "tradeType": "当面交易",
+      "status": "blocked",
+      "createdAt": "2026-04-28T14:16:16.786Z",
+      "views": 0
+    },
+    {
+      "id": "g1777385776744588",
+      "title": "链路测试商品",
+      "category": "生活",
+      "price": 15,
+      "desc": "full flow smoke test",
+      "imageUrl": "",
+      "sellerId": "u24551094",
+      "sellerName": "卖家测试",
+      "tradeType": "当面交易",
+      "status": "blocked",
+      "createdAt": "2026-04-28T14:16:16.744Z",
+      "views": 2
+    },
+    {
+      "id": "g1777379051919176",
+      "title": "批量商品-g1777379051919176",
+      "category": "生活",
+      "price": 18,
+      "desc": "batch test",
+      "imageUrl": "",
+      "sellerId": "u24915705",
+      "sellerName": "卖家测试",
+      "tradeType": "当面交易",
+      "status": "blocked",
+      "createdAt": "2026-04-28T12:24:11.922Z",
+      "views": 0
+    },
+    {
+      "id": "g177737905191949",
+      "title": "批量商品-g177737905191949",
+      "category": "生活",
+      "price": 18,
+      "desc": "batch test",
+      "imageUrl": "",
+      "sellerId": "u24915705",
+      "sellerName": "卖家测试",
+      "tradeType": "当面交易",
+      "status": "blocked",
+      "createdAt": "2026-04-28T12:24:11.920Z",
+      "views": 0
+    },
+    {
+      "id": "g1777379051887549",
+      "title": "链路测试商品",
+      "category": "生活",
+      "price": 15,
+      "desc": "full flow smoke test",
+      "imageUrl": "",
+      "sellerId": "u24915705",
+      "sellerName": "卖家测试",
+      "tradeType": "当面交易",
+      "status": "blocked",
+      "createdAt": "2026-04-28T12:24:11.887Z",
+      "views": 2
+    },
+    {
+      "id": "g1777363198891815",
+      "title": "批量商品-g1777363198891815",
+      "category": "生活",
+      "price": 18,
+      "desc": "batch test",
+      "imageUrl": "",
+      "sellerId": "u24159092",
+      "sellerName": "卖家测试",
+      "tradeType": "当面交易",
+      "status": "blocked",
+      "createdAt": "2026-04-28T07:59:58.893Z",
+      "views": 0
+    },
+    {
+      "id": "g177736319889127",
+      "title": "批量商品-g177736319889127",
+      "category": "生活",
+      "price": 18,
+      "desc": "batch test",
+      "imageUrl": "",
+      "sellerId": "u24159092",
+      "sellerName": "卖家测试",
+      "tradeType": "当面交易",
+      "status": "blocked",
+      "createdAt": "2026-04-28T07:59:58.891Z",
+      "views": 0
+    },
+    {
+      "id": "g1777363198863277",
+      "title": "链路测试商品",
+      "category": "生活",
+      "price": 15,
+      "desc": "full flow smoke test",
+      "imageUrl": "",
+      "sellerId": "u24159092",
+      "sellerName": "卖家测试",
+      "tradeType": "当面交易",
+      "status": "blocked",
+      "createdAt": "2026-04-28T07:59:58.863Z",
+      "views": 2
+    },
+    {
+      "id": "g1",
+      "title": "《高等数学》同济版 九成新",
+      "category": "教材",
+      "price": 20,
+      "desc": "无笔记，封面完整，可当面交易。",
+      "imageUrl": "",
+      "sellerId": "u20230001",
+      "sellerName": "老曹",
+      "tradeType": "当面交易",
+      "status": "sale",
+      "createdAt": "2026-04-19T11:00:00+08:00",
+      "views": 23
+    },
+    {
+      "id": "g2",
+      "title": "小米蓝牙耳机",
+      "category": "数码",
+      "price": 65,
+      "desc": "功能正常，含充电线。",
+      "imageUrl": "",
+      "sellerId": "u20230123",
+      "sellerName": "小徐",
+      "tradeType": "宿舍自提",
+      "status": "sale",
+      "createdAt": "2026-04-18T16:20:00+08:00",
+      "views": 36
+    },
+    {
+      "id": "g3",
+      "title": "篮球 7号 训练用",
+      "category": "运动",
+      "price": 30,
+      "desc": "轻微磨损，适合训练。",
+      "imageUrl": "",
+      "sellerId": "u20230555",
+      "sellerName": "阿豪",
+      "tradeType": "当面交易",
+      "status": "sold",
+      "createdAt": "2026-04-16T13:00:00+08:00",
+      "views": 41
+    }
+  ],
+  "messages": [
+    {
+      "id": "m1777388645191465",
+      "from": "买家测试",
+      "toId": "u24190436",
+      "item": "链路测试商品",
+      "text": "有意向购买",
+      "time": "刚刚"
+    },
+    {
+      "id": "m17773864276776",
+      "from": "买家测试",
+      "toId": "u24995564",
+      "item": "链路测试商品",
+      "text": "有意向购买",
+      "time": "刚刚"
+    },
+    {
+      "id": "m177738577675966",
+      "from": "买家测试",
+      "toId": "u24551094",
+      "item": "链路测试商品",
+      "text": "有意向购买",
+      "time": "刚刚"
+    },
+    {
+      "id": "m1777379051899188",
+      "from": "买家测试",
+      "toId": "u24915705",
+      "item": "链路测试商品",
+      "text": "有意向购买",
+      "time": "刚刚"
+    },
+    {
+      "id": "m1777363198875892",
+      "from": "买家测试",
+      "toId": "u24159092",
+      "item": "链路测试商品",
+      "text": "有意向购买",
+      "time": "刚刚"
+    },
+    {
+      "id": "m1",
+      "from": "系统通知",
+      "toId": "u20230001",
+      "item": "信用分更新",
+      "text": "你收到一条好评，信用分 +3。",
+      "time": "昨天 18:00"
+    }
+  ],
+  "intents": [
+    {
+      "id": "i1777388645191799",
+      "itemId": "g1777388645182629",
+      "itemTitle": "链路测试商品",
+      "buyerId": "u23065341",
+      "buyerName": "买家测试",
+      "sellerId": "u24190436",
+      "sellerName": "卖家测试",
+      "status": "completed",
+      "rated": false,
+      "updatedAt": "2026-04-28T15:04:05.196Z"
+    },
+    {
+      "id": "i1777386427677233",
+      "itemId": "g1777386427668538",
+      "itemTitle": "链路测试商品",
+      "buyerId": "u23060641",
+      "buyerName": "买家测试",
+      "sellerId": "u24995564",
+      "sellerName": "卖家测试",
+      "status": "completed",
+      "rated": false,
+      "updatedAt": "2026-04-28T14:27:07.683Z"
+    },
+    {
+      "id": "i1777385776759161",
+      "itemId": "g1777385776744588",
+      "itemTitle": "链路测试商品",
+      "buyerId": "u23658827",
+      "buyerName": "买家测试",
+      "sellerId": "u24551094",
+      "sellerName": "卖家测试",
+      "status": "completed",
+      "rated": false,
+      "updatedAt": "2026-04-28T14:16:16.768Z"
+    },
+    {
+      "id": "i1777379051899471",
+      "itemId": "g1777379051887549",
+      "itemTitle": "链路测试商品",
+      "buyerId": "u23870680",
+      "buyerName": "买家测试",
+      "sellerId": "u24915705",
+      "sellerName": "卖家测试",
+      "status": "completed",
+      "rated": false,
+      "updatedAt": "2026-04-28T12:24:11.906Z"
+    },
+    {
+      "id": "i177736319887594",
+      "itemId": "g1777363198863277",
+      "itemTitle": "链路测试商品",
+      "buyerId": "u23224175",
+      "buyerName": "买家测试",
+      "sellerId": "u24159092",
+      "sellerName": "卖家测试",
+      "status": "completed",
+      "rated": false,
+      "updatedAt": "2026-04-28T07:59:58.881Z"
+    }
+  ],
+  "reports": [
+    {
+      "id": "rp1777388645200978",
+      "goodsId": "g1777388645182629",
+      "goodsTitle": "链路测试商品",
+      "reporterId": "u23065341",
+      "reporterName": "买家测试",
+      "sellerId": "u24190436",
+      "reason": "测试举报",
+      "status": "resolved",
+      "createdAt": "2026-04-28T15:04:05.200Z",
+      "updatedAt": "2026-04-28T15:04:05.207Z",
+      "reviewedBy": "u99990000",
+      "reviewNote": "smoke test"
+    },
+    {
+      "id": "rp17773864276873",
+      "goodsId": "g1777386427668538",
+      "goodsTitle": "链路测试商品",
+      "reporterId": "u23060641",
+      "reporterName": "买家测试",
+      "sellerId": "u24995564",
+      "reason": "测试举报",
+      "status": "resolved",
+      "createdAt": "2026-04-28T14:27:07.687Z",
+      "updatedAt": "2026-04-28T14:27:07.693Z",
+      "reviewedBy": "u99990000",
+      "reviewNote": "smoke test"
+    },
+    {
+      "id": "rp1777385776775669",
+      "goodsId": "g1777385776744588",
+      "goodsTitle": "链路测试商品",
+      "reporterId": "u23658827",
+      "reporterName": "买家测试",
+      "sellerId": "u24551094",
+      "reason": "测试举报",
+      "status": "resolved",
+      "createdAt": "2026-04-28T14:16:16.775Z",
+      "updatedAt": "2026-04-28T14:16:16.784Z",
+      "reviewedBy": "u99990000",
+      "reviewNote": "smoke test"
+    },
+    {
+      "id": "rp1777379051911932",
+      "goodsId": "g1777379051887549",
+      "goodsTitle": "链路测试商品",
+      "reporterId": "u23870680",
+      "reporterName": "买家测试",
+      "sellerId": "u24915705",
+      "reason": "测试举报",
+      "status": "resolved",
+      "createdAt": "2026-04-28T12:24:11.911Z",
+      "updatedAt": "2026-04-28T12:24:11.918Z",
+      "reviewedBy": "u99990000",
+      "reviewNote": "smoke test"
+    },
+    {
+      "id": "rp1777363198884861",
+      "goodsId": "g1777363198863277",
+      "goodsTitle": "链路测试商品",
+      "reporterId": "u23224175",
+      "reporterName": "买家测试",
+      "sellerId": "u24159092",
+      "reason": "测试举报",
+      "status": "resolved",
+      "createdAt": "2026-04-28T07:59:58.884Z",
+      "updatedAt": "2026-04-28T07:59:58.890Z",
+      "reviewedBy": "u99990000",
+      "reviewNote": "smoke test"
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "al1777388645218232",
+      "actorId": "u99990000",
+      "actorName": "王老师",
+      "action": "user_block",
+      "targetType": "user",
+      "targetId": "u23065341",
+      "detail": "set status=blocked",
+      "createdAt": "2026-04-28T15:04:05.218Z"
+    },
+    {
+      "id": "al1777388645215156",
+      "actorId": "u99990000",
+      "actorName": "王老师",
+      "action": "goods_status_batch_update",
+      "targetType": "goods_batch",
+      "targetId": "g1777388645209612,g1777388645209545",
+      "detail": "count=2, status=blocked",
+      "createdAt": "2026-04-28T15:04:05.215Z"
+    },
+    {
+      "id": "al1777388645207633",
+      "actorId": "u99990000",
+      "actorName": "王老师",
+      "action": "report_review",
+      "targetType": "report",
+      "targetId": "rp1777388645200978",
+      "detail": "status=resolved, action=block_goods",
+      "createdAt": "2026-04-28T15:04:05.208Z"
+    },
+    {
+      "id": "al1777386427703498",
+      "actorId": "u99990000",
+      "actorName": "王老师",
+      "action": "user_block",
+      "targetType": "user",
+      "targetId": "u23060641",
+      "detail": "set status=blocked",
+      "createdAt": "2026-04-28T14:27:07.703Z"
+    },
+    {
+      "id": "al1777386427701715",
+      "actorId": "u99990000",
+      "actorName": "王老师",
+      "action": "goods_status_batch_update",
+      "targetType": "goods_batch",
+      "targetId": "g1777386427694504,g1777386427694760",
+      "detail": "count=2, status=blocked",
+      "createdAt": "2026-04-28T14:27:07.701Z"
+    },
+    {
+      "id": "al17773864276932",
+      "actorId": "u99990000",
+      "actorName": "王老师",
+      "action": "report_review",
+      "targetType": "report",
+      "targetId": "rp17773864276873",
+      "detail": "status=resolved, action=block_goods",
+      "createdAt": "2026-04-28T14:27:07.693Z"
+    },
+    {
+      "id": "al1777385776798385",
+      "actorId": "u99990000",
+      "actorName": "王老师",
+      "action": "user_block",
+      "targetType": "user",
+      "targetId": "u23658827",
+      "detail": "set status=blocked",
+      "createdAt": "2026-04-28T14:16:16.798Z"
+    },
+    {
+      "id": "al177738577679558",
+      "actorId": "u99990000",
+      "actorName": "王老师",
+      "action": "goods_status_batch_update",
+      "targetType": "goods_batch",
+      "targetId": "g177738577678672,g1777385776786341",
+      "detail": "count=2, status=blocked",
+      "createdAt": "2026-04-28T14:16:16.795Z"
+    },
+    {
+      "id": "al1777385776784605",
+      "actorId": "u99990000",
+      "actorName": "王老师",
+      "action": "report_review",
+      "targetType": "report",
+      "targetId": "rp1777385776775669",
+      "detail": "status=resolved, action=block_goods",
+      "createdAt": "2026-04-28T14:16:16.784Z"
+    },
+    {
+      "id": "al177737905193272",
+      "actorId": "u99990000",
+      "actorName": "王老师",
+      "action": "user_block",
+      "targetType": "user",
+      "targetId": "u23870680",
+      "detail": "set status=blocked",
+      "createdAt": "2026-04-28T12:24:11.932Z"
+    },
+    {
+      "id": "al1777379051929252",
+      "actorId": "u99990000",
+      "actorName": "王老师",
+      "action": "goods_status_batch_update",
+      "targetType": "goods_batch",
+      "targetId": "g177737905191949,g1777379051919176",
+      "detail": "count=2, status=blocked",
+      "createdAt": "2026-04-28T12:24:11.929Z"
+    },
+    {
+      "id": "al1777379051918828",
+      "actorId": "u99990000",
+      "actorName": "王老师",
+      "action": "report_review",
+      "targetType": "report",
+      "targetId": "rp1777379051911932",
+      "detail": "status=resolved, action=block_goods",
+      "createdAt": "2026-04-28T12:24:11.918Z"
+    },
+    {
+      "id": "al1777363198899953",
+      "actorId": "u99990000",
+      "actorName": "王老师",
+      "action": "user_block",
+      "targetType": "user",
+      "targetId": "u23224175",
+      "detail": "set status=blocked",
+      "createdAt": "2026-04-28T07:59:58.899Z"
+    },
+    {
+      "id": "al177736319889767",
+      "actorId": "u99990000",
+      "actorName": "王老师",
+      "action": "goods_status_batch_update",
+      "targetType": "goods_batch",
+      "targetId": "g177736319889127,g1777363198891815",
+      "detail": "count=2, status=blocked",
+      "createdAt": "2026-04-28T07:59:58.897Z"
+    },
+    {
+      "id": "al1777363198890231",
+      "actorId": "u99990000",
+      "actorName": "王老师",
+      "action": "report_review",
+      "targetType": "report",
+      "targetId": "rp1777363198884861",
+      "detail": "status=resolved, action=block_goods",
+      "createdAt": "2026-04-28T07:59:58.890Z"
+    }
+  ],
+  "credits": {
+    "u20230001": 92,
+    "u20230123": 85,
+    "u20230555": 88,
+    "u99990000": 100,
+    "u23224175": 80,
+    "u24159092": 83,
+    "u23870680": 80,
+    "u24915705": 83,
+    "u23658827": 80,
+    "u24551094": 83,
+    "u23060641": 80,
+    "u24995564": 83,
+    "u23065341": 80,
+    "u24190436": 83
+  },
+  "ratings": [
+    {
+      "id": "r177738864519839",
+      "fromId": "u23065341",
+      "toId": "u24190436",
+      "score": 5,
+      "itemId": "g1777388645182629",
+      "time": "2026-04-28T15:04:05.198Z"
+    },
+    {
+      "id": "r1777386427685976",
+      "fromId": "u23060641",
+      "toId": "u24995564",
+      "score": 5,
+      "itemId": "g1777386427668538",
+      "time": "2026-04-28T14:27:07.685Z"
+    },
+    {
+      "id": "r1777385776771569",
+      "fromId": "u23658827",
+      "toId": "u24551094",
+      "score": 5,
+      "itemId": "g1777385776744588",
+      "time": "2026-04-28T14:16:16.771Z"
+    },
+    {
+      "id": "r177737905190866",
+      "fromId": "u23870680",
+      "toId": "u24915705",
+      "score": 5,
+      "itemId": "g1777379051887549",
+      "time": "2026-04-28T12:24:11.908Z"
+    },
+    {
+      "id": "r1777363198883403",
+      "fromId": "u23224175",
+      "toId": "u24159092",
+      "score": 5,
+      "itemId": "g1777363198863277",
+      "time": "2026-04-28T07:59:58.883Z"
+    },
+    {
+      "id": "r1",
+      "fromId": "u20230123",
+      "toId": "u20230001",
+      "score": 5,
+      "itemId": "g1",
+      "time": "2026-04-18T10:00:00+08:00"
+    }
+  ],
+  "favorites": {
+    "u20230001": [
+      "g2"
+    ],
+    "u23224175": [],
+    "u24159092": [],
+    "u99990000": [],
+    "u23870680": [],
+    "u24915705": [],
+    "u23658827": [],
+    "u24551094": [],
+    "u23060641": [],
+    "u24995564": [],
+    "u23065341": [],
+    "u24190436": []
+  },
+  "users": {
+    "u99990000": {
+      "id": "u99990000",
+      "name": "王老师",
+      "studentId": "99990000",
+      "email": "admin@campus.edu.cn",
+      "role": "admin",
+      "status": "active"
+    },
+    "u23224175": {
+      "id": "u23224175",
+      "name": "买家测试",
+      "studentId": "23224175",
+      "email": "buyer@campus.edu.cn",
+      "role": "user",
+      "status": "blocked"
+    },
+    "u24159092": {
+      "id": "u24159092",
+      "name": "卖家测试",
+      "studentId": "24159092",
+      "email": "seller@campus.edu.cn",
+      "role": "user",
+      "status": "active"
+    },
+    "u23870680": {
+      "id": "u23870680",
+      "name": "买家测试",
+      "studentId": "23870680",
+      "email": "buyer@campus.edu.cn",
+      "role": "user",
+      "status": "blocked"
+    },
+    "u24915705": {
+      "id": "u24915705",
+      "name": "卖家测试",
+      "studentId": "24915705",
+      "email": "seller@campus.edu.cn",
+      "role": "user",
+      "status": "active"
+    },
+    "u23658827": {
+      "id": "u23658827",
+      "name": "买家测试",
+      "studentId": "23658827",
+      "email": "buyer@campus.edu.cn",
+      "role": "user",
+      "status": "blocked"
+    },
+    "u24551094": {
+      "id": "u24551094",
+      "name": "卖家测试",
+      "studentId": "24551094",
+      "email": "seller@campus.edu.cn",
+      "role": "user",
+      "status": "active"
+    },
+    "u23060641": {
+      "id": "u23060641",
+      "name": "买家测试",
+      "studentId": "23060641",
+      "email": "buyer@campus.edu.cn",
+      "role": "user",
+      "status": "blocked"
+    },
+    "u24995564": {
+      "id": "u24995564",
+      "name": "卖家测试",
+      "studentId": "24995564",
+      "email": "seller@campus.edu.cn",
+      "role": "user",
+      "status": "active"
+    },
+    "u23065341": {
+      "id": "u23065341",
+      "name": "买家测试",
+      "studentId": "23065341",
+      "email": "buyer@campus.edu.cn",
+      "role": "user",
+      "status": "blocked"
+    },
+    "u24190436": {
+      "id": "u24190436",
+      "name": "卖家测试",
+      "studentId": "24190436",
+      "email": "seller@campus.edu.cn",
+      "role": "user",
+      "status": "active"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "MY校园淘二手",
+  "short_name": "校园淘二手",
+  "description": "面向校园师生的二手交易移动端应用",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f6f8",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

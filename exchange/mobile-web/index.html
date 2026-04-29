@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f766e" />
+    <title>MY校园淘二手 - App</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell" id="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="eyebrow">校园认证二手交易</p>
+          <h1 id="appTitle">MY校园淘二手</h1>
+        </div>
+        <div class="header-actions">
+          <button id="installBtn" class="ghost-btn hidden">安装App</button>
+          <button id="quickSellBtn" class="ghost-btn">+ 发布</button>
+        </div>
+      </header>
+
+      <main id="app" class="main"></main>
+
+      <nav class="tabbar" id="tabbar">
+        <button class="tab active" data-tab="home">首页</button>
+        <button class="tab" data-tab="publish">发布</button>
+        <button class="tab" data-tab="messages">交易</button>
+        <button class="tab" data-tab="profile">我的</button>
+        <button class="tab hidden" id="adminTabBtn" data-tab="admin">管理</button>
+      </nav>
+    </div>
+
+    <template id="authTemplate">
+      <section class="card auth-card">
+        <p class="auth-eyebrow">学号实名登录</p>
+        <h2>欢迎来到 MY校园淘二手</h2>
+        <p class="auth-tip">仅限本校师生使用，登录后可发布、私信、交易与评价。</p>
+        <form id="authForm" class="form-grid">
+          <label>
+            昵称
+            <input name="name" required maxlength="16" placeholder="例：老曹" />
+          </label>
+          <label>
+            学号
+            <input name="studentId" required pattern="[0-9]{8}" placeholder="8位学号" />
+          </label>
+          <label>
+            校园邮箱
+            <input name="email" required type="email" placeholder="xxx@campus.edu.cn" />
+          </label>
+          <button type="submit" class="primary-btn">登录并进入</button>
+        </form>
+      </section>
+    </template>
+
+    <template id="homeTemplate">
+      <section class="card summary-card">
+        <div>
+          <p class="muted">今日推荐</p>
+          <h2 id="homeGreet"></h2>
+        </div>
+        <span class="chip" id="favCountChip"></span>
+      </section>
+
+      <section class="card search-card">
+        <label for="searchInput">搜教材、数码、生活用品</label>
+        <div class="search-row">
+          <input id="searchInput" type="search" placeholder="输入关键词" />
+          <select id="categoryFilter">
+            <option value="all">全部分类</option>
+            <option value="教材">教材</option>
+            <option value="数码">数码</option>
+            <option value="生活">生活</option>
+            <option value="运动">运动</option>
+          </select>
+        </div>
+        <div class="sort-row">
+          <button class="sort-btn active" data-sort="latest">最新</button>
+          <button class="sort-btn" data-sort="priceAsc">价格低到高</button>
+          <button class="sort-btn" data-sort="priceDesc">价格高到低</button>
+          <button class="sort-btn" data-sort="popular">热门</button>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-title-row">
+          <h2>商品列表</h2>
+          <span id="resultCount">0 件</span>
+        </div>
+        <div id="goodsList" class="goods-list"></div>
+      </section>
+    </template>
+
+    <template id="publishTemplate">
+      <section class="card">
+        <h2>发布闲置</h2>
+        <form id="publishForm" class="form-grid">
+          <label>
+            标题
+            <input name="title" required maxlength="30" placeholder="例：高数教材 九成新" />
+          </label>
+          <label>
+            分类
+            <select name="category" required>
+              <option value="教材">教材</option>
+              <option value="数码">数码</option>
+              <option value="生活">生活</option>
+              <option value="运动">运动</option>
+            </select>
+          </label>
+          <label>
+            价格（元）
+            <input name="price" type="number" min="1" required />
+          </label>
+          <label>
+            图片链接（可选）
+            <input name="imageUrl" type="url" placeholder="https://..." />
+          </label>
+          <label>
+            交易方式
+            <select name="tradeType" required>
+              <option value="当面交易">当面交易</option>
+              <option value="宿舍自提">宿舍自提</option>
+            </select>
+          </label>
+          <label>
+            描述
+            <textarea name="desc" rows="4" maxlength="120" placeholder="补充成色、配件、交易时间"></textarea>
+          </label>
+          <button type="submit" class="primary-btn">发布商品</button>
+        </form>
+      </section>
+    </template>
+
+    <template id="messagesTemplate">
+      <section class="card">
+        <h2>交易意向</h2>
+        <div id="intentList" class="message-list"></div>
+      </section>
+      <section class="card">
+        <h2>站内消息</h2>
+        <div id="messagesList" class="message-list"></div>
+      </section>
+    </template>
+
+    <template id="profileTemplate">
+      <section class="card profile-card">
+        <p class="student-id" id="studentIdText"></p>
+        <h2 id="profileName"></h2>
+        <p class="credit">信用分：<strong id="creditScore"></strong></p>
+        <div class="chip-row">
+          <span class="chip" id="soldCountChip"></span>
+          <span class="chip" id="ratingChip"></span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>我的商品</h3>
+        <div id="myGoodsList" class="goods-list"></div>
+      </section>
+
+      <section class="card">
+        <button id="logoutBtn" class="danger-btn">退出登录</button>
+      </section>
+    </template>
+
+    <template id="adminTemplate">
+      <section class="card">
+        <h2>管理员工作台</h2>
+        <p class="muted">违规处理、商品下架、举报审核</p>
+        <div class="chip-row">
+          <span class="chip" id="pendingReportChip"></span>
+          <span class="chip" id="blockedGoodsChip"></span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>举报列表</h3>
+        <div id="reportList" class="message-list"></div>
+      </section>
+
+      <section class="card">
+        <h3>用户管理</h3>
+        <div id="userList" class="message-list"></div>
+      </section>
+
+      <section class="card">
+        <h3>商品治理</h3>
+        <div class="search-row">
+          <input id="adminGoodsKeyword" type="search" placeholder="关键词巡检（如 香烟、代跑）" />
+          <select id="adminGoodsStatusFilter">
+            <option value="all">全部状态</option>
+            <option value="sale">在售</option>
+            <option value="sold">已售</option>
+            <option value="blocked">已下架</option>
+          </select>
+        </div>
+        <div class="item-actions">
+          <button class="action-btn" id="adminSelectAllBtn">全选当前</button>
+          <button class="action-btn" id="adminBatchBlockBtn">批量下架</button>
+          <button class="action-btn" id="adminBatchRestoreBtn">批量恢复上架</button>
+        </div>
+        <div id="adminGoodsList" class="message-list"></div>
+      </section>
+
+      <section class="card">
+        <h3>操作审计日志</h3>
+        <div id="auditLogList" class="message-list"></div>
+      </section>
+    </template>
+
+    <dialog id="detailDialog" class="detail-dialog"></dialog>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

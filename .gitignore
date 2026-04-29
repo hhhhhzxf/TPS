@@ -1,0 +1,64 @@
+# 操作系统与编辑器
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.project
+.classpath
+.factorypath
+.settings/
+*.iml
+
+# 本地智能体与临时配置
+.codex
+.claude/
+
+# Gradle / Kotlin / Android 构建产物
+.gradle/
+.kotlin/
+build/
+**/build/
+local.properties
+
+# Android 输出包与签名文件
+*.apk
+*.aab
+*.ap_
+*.keystore
+*.jks
+
+# Maven / Java 构建产物
+target/
+**/target/
+*.class
+*.jar
+*.war
+!gradle/wrapper/gradle-wrapper.jar
+
+# Node / Web 前端依赖和构建产物
+node_modules/
+exchange/node_modules/
+exchange/dist/
+exchange/build/
+exchange/.cache/
+
+# 运行期上传文件与本地数据
+img/
+backend/img/
+uploads/
+logs/
+*.log
+
+# 本地数据库与缓存
+*.db
+*.sqlite
+*.sqlite3
+
+# 临时批处理脚本
+add_app_async_image.py
+dedup_imports.py
+fix_market_components.py
+replace_images.py
+replace_images_safe.py
+rewrite_chat.py
+update_home.py

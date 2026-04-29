@@ -1,0 +1,17 @@
+{
+  "name": "campus-exchange",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MY校园淘二手 本地演示项目",
+  "scripts": {
+    "start": "node server.js",
+    "start:api": "node server.js",
+    "start:web": "API_BASE_URL=http://127.0.0.1:3000 PORT=9876 PREVIEW_MODE=false node scripts/serve-preview.mjs",
+    "preview": "PREVIEW_MODE=true PORT=9876 node scripts/serve-preview.mjs",
+    "reset:db": "node scripts/reset-db.mjs",
+    "test:smoke": "node scripts/api-smoke-test.mjs",
+    "build:mobile-web": "node scripts/prepare-capacitor-web.mjs",
+    "mobile:sync": "npm run build:mobile-web && npx cap sync",
+    "mobile:android": "npm run build:mobile-web && npx cap open android"
+  }
+}
