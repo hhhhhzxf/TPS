@@ -93,6 +93,7 @@ val syncHybridWebAssets by tasks.registering {
 android {
     namespace = "com.tps"
     compileSdk = 35
+    buildToolsVersion = "35.0.0"
 
     defaultConfig {
         applicationId = "com.tps"

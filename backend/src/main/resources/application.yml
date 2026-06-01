@@ -10,7 +10,7 @@ spring:
   datasource:
     url: ${TPS_DB_URL:jdbc:mysql://localhost:3306/tps?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}
     username: ${TPS_DB_USERNAME:root}
-    password: ${TPS_DB_PASSWORD:source}
+    password: ${TPS_DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
