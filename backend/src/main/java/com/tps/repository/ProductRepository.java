@@ -22,6 +22,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     Page<Product> findByStatus(Product.ProductStatus status, Pageable pageable);
     List<Product> findByUserIdAndStatus(Long userId, Product.ProductStatus status);
     List<Product> findByUserId(Long userId);
+    long countByStatus(Product.ProductStatus status);
 
     @Modifying
     @Query("UPDATE Product p SET p.viewCount = p.viewCount + 1 WHERE p.id = :id")

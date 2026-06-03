@@ -313,6 +313,72 @@ class BackendIntegrationTest {
     }
 
     @Test
+    void adminFilteringStatsAnnouncementAndRefundRejectWork() throws Exception {
+        String sellerToken = register("13800138120", "seller").at("/data/token").asText();
+        String buyerToken = register("13800138121", "buyer").at("/data/token").asText();
+        String adminToken = createAdmin("13800138122");
+        Long sellerId = userRepository.findByPhone("13800138120").orElseThrow().getId();
+        Long buyerId = userRepository.findByPhone("13800138121").orElseThrow().getId();
+        Long productId = createProduct(sellerToken, null);
+        Long orderId = createOrder(buyerToken, productId);
+
+        mockMvc.perform(put("/api/orders/{id}/pay", orderId).header("Authorization", "Bearer " + buyerToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/orders/{id}/refund", orderId)
+                        .header("Authorization", "Bearer " + buyerToken)
+                        .param("reason", "need refund"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/admin/users")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("status", "ACTIVE")
+                        .param("keyword", "buyer"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[*].id", hasItem(buyerId.intValue())));
+
+        mockMvc.perform(get("/api/admin/products")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("keyword", "Phone")
+                        .param("sellerId", String.valueOf(sellerId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[*].id", hasItem(productId.intValue())));
+
+        mockMvc.perform(get("/api/admin/orders")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("status", "REFUNDING")
+                        .param("userId", String.valueOf(buyerId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[*].id", hasItem(orderId.intValue())));
+
+        mockMvc.perform(put("/api/admin/orders/{id}/refund/reject", orderId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("reason", "凭证不足"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/orders/{id}", orderId).header("Authorization", "Bearer " + buyerToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("PAID"))
+                .andExpect(jsonPath("$.data.remark").value("凭证不足"));
+
+        mockMvc.perform(get("/api/admin/stats").header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.activeUsers", greaterThanOrEqualTo(3)))
+                .andExpect(jsonPath("$.data.refundingOrders").value(0))
+                .andExpect(jsonPath("$.data.todayOrders", greaterThanOrEqualTo(1)))
+                .andExpect(jsonPath("$.data.pendingReports").value(0));
+
+        mockMvc.perform(post("/api/admin/notifications")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("title", "维护通知")
+                        .param("content", "今晚系统维护"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/notifications").header("Authorization", "Bearer " + buyerToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[*].title", hasItem("维护通知")));
+    }
+
+    @Test
     void unauthenticatedProtectedEndpointReturnsJson401() throws Exception {
         mockMvc.perform(get("/api/users/me"))
                 .andExpect(status().isUnauthorized())

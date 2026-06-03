@@ -196,7 +196,12 @@ interface ApiService {
 
     // Admin
     @GET("api/admin/users")
-    suspend fun adminGetUsers(@Query("page") page: Int = 0): ApiResponse<PageResponse<UserProfile>>
+    suspend fun adminGetUsers(
+        @Query("status") status: String? = null,
+        @Query("keyword") keyword: String? = null,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): ApiResponse<PageResponse<UserProfile>>
 
     @PUT("api/admin/users/{id}/ban")
     suspend fun adminBanUser(@Path("id") id: Long): ApiResponse<Unit>
@@ -205,11 +210,20 @@ interface ApiService {
     suspend fun adminUnbanUser(@Path("id") id: Long): ApiResponse<Unit>
 
     @GET("api/admin/reports")
-    suspend fun adminGetReports(@Query("page") page: Int = 0): ApiResponse<PageResponse<ReportDto>>
+    suspend fun adminGetReports(
+        @Query("status") status: String? = "PENDING",
+        @Query("productId") productId: Long? = null,
+        @Query("reporterId") reporterId: Long? = null,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): ApiResponse<PageResponse<ReportDto>>
 
     @GET("api/admin/products")
     suspend fun adminGetProducts(
         @Query("status") status: String? = null,
+        @Query("keyword") keyword: String? = null,
+        @Query("category") category: String? = null,
+        @Query("sellerId") sellerId: Long? = null,
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 20
     ): ApiResponse<PageResponse<ProductDto>>
@@ -228,7 +242,28 @@ interface ApiService {
     ): ApiResponse<Unit>
 
     @GET("api/admin/orders")
-    suspend fun adminGetOrders(@Query("page") page: Int = 0): ApiResponse<PageResponse<OrderDto>>
+    suspend fun adminGetOrders(
+        @Query("status") status: String? = null,
+        @Query("userId") userId: Long? = null,
+        @Query("productId") productId: Long? = null,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): ApiResponse<PageResponse<OrderDto>>
+
+    @PUT("api/admin/orders/{id}/refund/approve")
+    suspend fun adminApproveRefund(@Path("id") id: Long): ApiResponse<Unit>
+
+    @PUT("api/admin/orders/{id}/refund/reject")
+    suspend fun adminRejectRefund(
+        @Path("id") id: Long,
+        @Query("reason") reason: String? = null
+    ): ApiResponse<Unit>
+
+    @POST("api/admin/notifications")
+    suspend fun adminSendAnnouncement(
+        @Query("title") title: String? = null,
+        @Query("content") content: String
+    ): ApiResponse<Unit>
 
     @GET("api/admin/stats")
     suspend fun adminGetStats(): ApiResponse<AdminStats>

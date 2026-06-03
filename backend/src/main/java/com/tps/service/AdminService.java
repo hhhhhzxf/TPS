@@ -12,11 +12,16 @@ import com.tps.entity.*;
 import com.tps.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -33,7 +38,26 @@ public class AdminService {
     private final FileService fileService;
 
     public Page<UserProfileResponse> getUsers(int page, int size) {
-        return userRepository.findAll(PageRequest.of(page, size, Sort.by("createdAt").descending()))
+        return getUsers(null, null, page, size);
+    }
+
+    public Page<UserProfileResponse> getUsers(String status, String keyword, int page, int size) {
+        Specification<User> spec = (root, query, cb) -> {
+            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+            if (hasFilter(status)) {
+                predicates.add(cb.equal(root.get("status"), User.UserStatus.valueOf(status.trim().toUpperCase(Locale.ROOT))));
+            }
+            if (keyword != null && !keyword.isBlank()) {
+                String pattern = "%" + keyword.trim().toLowerCase() + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.<String>get("phone")), pattern),
+                        cb.like(cb.lower(root.<String>get("studentId")), pattern),
+                        cb.like(cb.lower(root.<String>get("nickname")), pattern)
+                ));
+            }
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+        return userRepository.findAll(spec, pageable(page, size, "createdAt"))
                 .map(this::toUserProfile);
     }
 
@@ -56,19 +80,53 @@ public class AdminService {
     private final OrderService orderService;
 
     public Page<ProductResponse> getProducts(String status, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        if (status == null || status.isBlank()) {
-            return productRepository.findAll(pageable).map(product -> productService.toResponse(product, null));
-        }
-        Product.ProductStatus productStatus = Product.ProductStatus.valueOf(status);
-        return productRepository.findByStatus(productStatus, pageable)
+        return getProducts(status, null, null, null, page, size);
+    }
+
+    public Page<ProductResponse> getProducts(String status, String keyword, String category, Long sellerId, int page, int size) {
+        Specification<Product> spec = (root, query, cb) -> {
+            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+            if (hasFilter(status)) {
+                predicates.add(cb.equal(root.get("status"), Product.ProductStatus.valueOf(status.trim().toUpperCase(Locale.ROOT))));
+            }
+            if (category != null && !category.isBlank()) {
+                predicates.add(cb.equal(root.get("category"), category.trim()));
+            }
+            if (sellerId != null) {
+                predicates.add(cb.equal(root.get("userId"), sellerId));
+            }
+            if (keyword != null && !keyword.isBlank()) {
+                String pattern = "%" + keyword.trim().toLowerCase() + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.<String>get("title")), pattern),
+                        cb.like(cb.lower(root.<String>get("description")), pattern)
+                ));
+            }
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+        return productRepository.findAll(spec, pageable(page, size, "createdAt"))
                 .map(product -> productService.toResponse(product, null));
     }
 
     public Page<ReportResponse> getReportedProducts(int page, int size) {
-        return reportRepository.findByStatus(Report.ReportStatus.PENDING,
-                PageRequest.of(page, size, Sort.by("createdAt").descending()))
-                .map(this::toReportResponse);
+        return getReports(Report.ReportStatus.PENDING.name(), null, null, page, size);
+    }
+
+    public Page<ReportResponse> getReports(String status, Long productId, Long reporterId, int page, int size) {
+        Specification<Report> spec = (root, query, cb) -> {
+            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+            if (hasFilter(status)) {
+                predicates.add(cb.equal(root.get("status"), Report.ReportStatus.valueOf(status.trim().toUpperCase(Locale.ROOT))));
+            }
+            if (productId != null) {
+                predicates.add(cb.equal(root.get("productId"), productId));
+            }
+            if (reporterId != null) {
+                predicates.add(cb.equal(root.get("reporterId"), reporterId));
+            }
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+        return reportRepository.findAll(spec, pageable(page, size, "createdAt")).map(this::toReportResponse);
     }
 
     @Transactional
@@ -102,7 +160,27 @@ public class AdminService {
     }
 
     public Page<OrderResponse> getOrders(int page, int size) {
-        return orderRepository.findAll(PageRequest.of(page, size, Sort.by("createdAt").descending()))
+        return getOrders(null, null, null, page, size);
+    }
+
+    public Page<OrderResponse> getOrders(String status, Long userId, Long productId, int page, int size) {
+        Specification<Order> spec = (root, query, cb) -> {
+            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+            if (hasFilter(status)) {
+                predicates.add(cb.equal(root.get("status"), Order.OrderStatus.valueOf(status.trim().toUpperCase(Locale.ROOT))));
+            }
+            if (userId != null) {
+                predicates.add(cb.or(
+                        cb.equal(root.get("buyerId"), userId),
+                        cb.equal(root.get("sellerId"), userId)
+                ));
+            }
+            if (productId != null) {
+                predicates.add(cb.equal(root.get("productId"), productId));
+            }
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+        return orderRepository.findAll(spec, pageable(page, size, "createdAt"))
                 .map(orderService::toResponse);
     }
 
@@ -131,25 +209,31 @@ public class AdminService {
 
     @Transactional
     public void approveRefund(Long orderId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
-        if (order.getStatus() != Order.OrderStatus.REFUNDING) {
-            throw new IllegalArgumentException("订单不在退款中");
-        }
-        order.setStatus(Order.OrderStatus.REFUNDED);
-        productRepository.findById(order.getProductId()).ifPresent(product -> {
-            product.setStatus(Product.ProductStatus.ON_SALE);
-            productRepository.save(product);
-        });
-        orderRepository.save(order);
+        orderService.approveRefundByAdmin(orderId);
+    }
+
+    @Transactional
+    public void rejectRefund(Long orderId, String reason) {
+        orderService.rejectRefundByAdmin(orderId, reason);
     }
 
     public Map<String, Object> getStats() {
+        LocalDateTime todayStart = LocalDate.now().atStartOfDay();
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalUsers", userRepository.count());
+        stats.put("activeUsers", userRepository.countByStatus(User.UserStatus.ACTIVE));
+        stats.put("bannedUsers", userRepository.countByStatus(User.UserStatus.BANNED));
         stats.put("totalProducts", productRepository.count());
+        stats.put("onSaleProducts", productRepository.countByStatus(Product.ProductStatus.ON_SALE));
+        stats.put("offProducts", productRepository.countByStatus(Product.ProductStatus.OFF));
+        stats.put("soldProducts", productRepository.countByStatus(Product.ProductStatus.SOLD));
         stats.put("totalOrders", orderRepository.count());
+        stats.put("refundingOrders", orderRepository.countByStatus(Order.OrderStatus.REFUNDING));
+        stats.put("doneOrders", orderRepository.countByStatus(Order.OrderStatus.DONE));
+        stats.put("todayOrders", orderRepository.countByCreatedAtAfter(todayStart));
         stats.put("totalAmount", orderRepository.sumFinalPrice());
+        stats.put("todayAmount", orderRepository.sumDonePriceAfter(todayStart));
+        stats.put("pendingReports", reportRepository.countByStatus(Report.ReportStatus.PENDING));
         return stats;
     }
 
@@ -188,13 +272,34 @@ public class AdminService {
 
     @Transactional
     public void sendAnnouncement(String content) {
+        sendAnnouncement("系统公告", content);
+    }
+
+    @Transactional
+    public void sendAnnouncement(String title, String content) {
+        String normalizedTitle = title == null || title.isBlank() ? "系统公告" : title.trim();
+        String normalizedContent = content == null ? "" : content.trim();
+        if (normalizedContent.isBlank()) {
+            throw new IllegalArgumentException("公告内容不能为空");
+        }
         // 给所有用户创建系统通知
         userRepository.findAll().forEach(user -> {
             Notification n = new Notification();
             n.setUserId(user.getId());
             n.setType("SYSTEM");
-            n.setContent(content);
+            n.setTitle(normalizedTitle);
+            n.setContent(normalizedContent);
             notificationRepository.save(n);
         });
+    }
+
+    private Pageable pageable(int page, int size, String sortProperty) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 100);
+        return PageRequest.of(safePage, safeSize, Sort.by(sortProperty).descending());
+    }
+
+    private boolean hasFilter(String value) {
+        return value != null && !value.isBlank() && !"ALL".equalsIgnoreCase(value.trim());
     }
 }

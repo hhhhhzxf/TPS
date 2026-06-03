@@ -215,9 +215,19 @@ data class FeedbackDto(
 // Admin
 data class AdminStats(
     val totalUsers: Long,
+    val activeUsers: Long = 0,
+    val bannedUsers: Long = 0,
     val totalProducts: Long,
+    val onSaleProducts: Long = 0,
+    val offProducts: Long = 0,
+    val soldProducts: Long = 0,
     val totalOrders: Long,
-    val totalAmount: Double
+    val refundingOrders: Long = 0,
+    val doneOrders: Long = 0,
+    val todayOrders: Long = 0,
+    val totalAmount: Double,
+    val todayAmount: Double = 0.0,
+    val pendingReports: Long = 0
 )
 
 typealias AdminStatsDto = AdminStats

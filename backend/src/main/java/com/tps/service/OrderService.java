@@ -208,6 +208,23 @@ public class OrderService {
         approveRefundInternal(order);
     }
 
+    @Transactional
+    public void rejectRefundByAdmin(Long orderId, String reason) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("订单不存在"));
+        if (order.getStatus() != Order.OrderStatus.REFUNDING) {
+            throw new IllegalArgumentException("订单不在退款中");
+        }
+        order.setStatus(order.getTrackingNumber() == null || order.getTrackingNumber().isBlank()
+                ? Order.OrderStatus.PAID
+                : Order.OrderStatus.SHIPPED);
+        String normalizedReason = reason == null || reason.isBlank() ? "平台审核未通过退款申请" : reason.trim();
+        order.setRemark(normalizedReason);
+        orderRepository.save(order);
+        notifyUser(order.getBuyerId(), "REFUND", "退款申请未通过", normalizedReason);
+        notifyUser(order.getSellerId(), "REFUND", "退款申请已驳回", "平台已驳回该订单的退款申请");
+    }
+
     private void approveRefundInternal(Order order) {
         if (order.getStatus() != Order.OrderStatus.REFUNDING) {
             throw new IllegalArgumentException("订单不在退款中");

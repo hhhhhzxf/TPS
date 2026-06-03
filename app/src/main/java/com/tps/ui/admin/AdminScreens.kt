@@ -21,6 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.tps.data.remote.dto.OrderDto
 import com.tps.data.remote.dto.ProductDto
 import com.tps.data.remote.dto.ReportDto
 import com.tps.ui.theme.AppAsyncImage
@@ -297,15 +298,104 @@ private fun AdminListedProductCard(
 @Composable
 fun AdminOrdersScreen(viewModel: AdminViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
-    Scaffold(containerColor = Color.Transparent, topBar = { TopAppBar(title = { Text("订单管理", fontWeight = FontWeight.Bold) }) }) { padding ->
+    val snackbarHostState = remember { SnackbarHostState() }
+    var rejectingOrder by remember { mutableStateOf<OrderDto?>(null) }
+    var rejectReason by remember { mutableStateOf("") }
+
+    LaunchedEffect(uiState.error, uiState.successMessage) {
+        val message = uiState.error ?: uiState.successMessage
+        if (message != null) {
+            snackbarHostState.showSnackbar(message)
+            viewModel.consumeMessages()
+        }
+    }
+
+    rejectingOrder?.let { order ->
+        AlertDialog(
+            onDismissRequest = {
+                rejectingOrder = null
+                rejectReason = ""
+            },
+            title = { Text("驳回退款申请") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("订单 #${order.id}，商品：${order.productTitle}")
+                    OutlinedTextField(
+                        value = rejectReason,
+                        onValueChange = { rejectReason = it.take(255) },
+                        label = { Text("驳回原因") },
+                        minLines = 3,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.rejectRefund(order.id, rejectReason)
+                        rejectingOrder = null
+                        rejectReason = ""
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("确认驳回")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    rejectingOrder = null
+                    rejectReason = ""
+                }) {
+                    Text("取消")
+                }
+            }
+        )
+    }
+
+    Scaffold(
+        containerColor = Color.Transparent,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = { TopAppBar(title = { Text("订单管理", fontWeight = FontWeight.Bold) }) }
+    ) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             item { MarketHeroCard("订单看板", "集中查看平台交易状态和退款风险。") }
             items(uiState.orders) { order ->
                 Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("订单 #${order.id}", style = MaterialTheme.typography.labelSmall)
-                        Text("商品ID：${order.productId}", style = MaterialTheme.typography.titleMedium)
+                        Text(order.productTitle.ifBlank { "商品ID：${order.productId}" }, style = MaterialTheme.typography.titleMedium)
+                        Text("买家：${order.buyerNickname ?: order.buyerId} | 卖家：${order.sellerNickname ?: order.sellerId}")
                         Text("状态：${order.status} | ¥${order.price}")
+                        if (!order.remark.isNullOrBlank()) {
+                            Text("备注：${order.remark}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        if (order.status == "REFUNDING") {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (uiState.operatingOrderId == order.id) {
+                                    CircularProgressIndicator(modifier = Modifier.padding(end = 12.dp), strokeWidth = 2.dp)
+                                }
+                                OutlinedButton(
+                                    onClick = {
+                                        rejectingOrder = order
+                                        rejectReason = ""
+                                    },
+                                    enabled = uiState.operatingOrderId != order.id
+                                ) {
+                                    Text("驳回退款")
+                                }
+                                Spacer(Modifier.width(8.dp))
+                                Button(
+                                    onClick = { viewModel.approveRefund(order.id) },
+                                    enabled = uiState.operatingOrderId != order.id
+                                ) {
+                                    Text("通过退款")
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -324,9 +414,15 @@ fun AdminStatsScreen(viewModel: AdminViewModel = hiltViewModel()) {
         ) {
             MarketHeroCard("运营数据", "用户、商品、订单和交易额一屏掌握。")
             StatCard("总用户数", uiState.stats?.totalUsers?.toString() ?: "-")
+            StatCard("活跃/封禁用户", uiState.stats?.let { "${it.activeUsers}/${it.bannedUsers}" } ?: "-")
             StatCard("总商品数", uiState.stats?.totalProducts?.toString() ?: "-")
+            StatCard("在售/下架/售出", uiState.stats?.let { "${it.onSaleProducts}/${it.offProducts}/${it.soldProducts}" } ?: "-")
             StatCard("总订单数", uiState.stats?.totalOrders?.toString() ?: "-")
+            StatCard("退款中订单", uiState.stats?.refundingOrders?.toString() ?: "-")
+            StatCard("待处理举报", uiState.stats?.pendingReports?.toString() ?: "-")
+            StatCard("今日订单数", uiState.stats?.todayOrders?.toString() ?: "-")
             StatCard("总交易额", uiState.stats?.totalAmount?.let { "¥$it" } ?: "-")
+            StatCard("今日交易额", uiState.stats?.todayAmount?.let { "¥$it" } ?: "-")
         }
     }
 }

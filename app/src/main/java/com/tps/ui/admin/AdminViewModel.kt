@@ -27,7 +27,8 @@ data class AdminUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val successMessage: String? = null,
-    val operatingProductId: Long? = null
+    val operatingProductId: Long? = null,
+    val operatingOrderId: Long? = null
 )
 
 @HiltViewModel
@@ -151,6 +152,48 @@ class AdminViewModel @Inject constructor(
                 loadStats()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(error = e.message, operatingProductId = null)
+            }
+        }
+    }
+
+    fun approveRefund(orderId: Long) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                operatingOrderId = orderId,
+                error = null,
+                successMessage = null
+            )
+            try {
+                apiService.adminApproveRefund(orderId)
+                _uiState.value = _uiState.value.copy(
+                    successMessage = "退款已通过",
+                    operatingOrderId = null
+                )
+                loadOrders()
+                loadStats()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message, operatingOrderId = null)
+            }
+        }
+    }
+
+    fun rejectRefund(orderId: Long, reason: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                operatingOrderId = orderId,
+                error = null,
+                successMessage = null
+            )
+            try {
+                apiService.adminRejectRefund(orderId, reason.trim().ifBlank { null })
+                _uiState.value = _uiState.value.copy(
+                    successMessage = "退款已驳回",
+                    operatingOrderId = null
+                )
+                loadOrders()
+                loadStats()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message, operatingOrderId = null)
             }
         }
     }

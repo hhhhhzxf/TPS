@@ -26,9 +26,11 @@ public class AdminController {
 
     @GetMapping("/users")
     public ApiResponse<?> getUsers(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ApiResponse.success(PageResponse.from(adminService.getUsers(page, size)));
+        return ApiResponse.success(PageResponse.from(adminService.getUsers(status, keyword, page, size)));
     }
 
     @PutMapping("/users/{id}/ban")
@@ -52,17 +54,23 @@ public class AdminController {
 
     @GetMapping("/reports")
     public ApiResponse<?> getReports(
+            @RequestParam(defaultValue = "PENDING") String status,
+            @RequestParam(required = false) Long productId,
+            @RequestParam(required = false) Long reporterId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ApiResponse.success(PageResponse.from(adminService.getReportedProducts(page, size)));
+        return ApiResponse.success(PageResponse.from(adminService.getReports(status, productId, reporterId, page, size)));
     }
 
     @GetMapping("/products")
     public ApiResponse<?> getProducts(
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Long sellerId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ApiResponse.success(PageResponse.from(adminService.getProducts(status, page, size)));
+        return ApiResponse.success(PageResponse.from(adminService.getProducts(status, keyword, category, sellerId, page, size)));
     }
 
     @PutMapping("/products/{id}/takedown")
@@ -90,9 +98,12 @@ public class AdminController {
 
     @GetMapping("/orders")
     public ApiResponse<?> getOrders(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) Long productId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ApiResponse.success(PageResponse.from(adminService.getOrders(page, size)));
+        return ApiResponse.success(PageResponse.from(adminService.getOrders(status, userId, productId, page, size)));
     }
 
     @GetMapping("/orders/refunding")
@@ -108,14 +119,22 @@ public class AdminController {
         return ApiResponse.success();
     }
 
+    @PutMapping("/orders/{id}/refund/reject")
+    public ApiResponse<?> rejectRefund(@PathVariable Long id,
+                                       @RequestParam(required = false) String reason) {
+        adminService.rejectRefund(id, reason);
+        return ApiResponse.success();
+    }
+
     @GetMapping("/stats")
     public ApiResponse<?> getStats() {
         return ApiResponse.success(adminService.getStats());
     }
 
     @PostMapping("/notifications")
-    public ApiResponse<?> sendAnnouncement(@RequestParam String content) {
-        adminService.sendAnnouncement(content);
+    public ApiResponse<?> sendAnnouncement(@RequestParam(required = false) String title,
+                                           @RequestParam String content) {
+        adminService.sendAnnouncement(title, content);
         return ApiResponse.success();
     }
 
