@@ -1,4 +1,4 @@
-# TPS 校园二手交易系统
+# TPS 校园二手交易系统你麻痹
 
 TPS 是一个校园二手交易 APP，仓库内包含 Android 客户端、Spring Boot 后端和联调脚本。
 
