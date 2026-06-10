@@ -33,6 +33,12 @@ cd /home/source/myGtihub/TPS
 TPS_DB_USERNAME=root TPS_DB_PASSWORD='root' TPS_LAN_IP=<你的电脑IP> ./start-backend.sh
 ```
 
+或者简易启动，
+
+```bash
+TPS_LAN_IP=<你电脑IP> ./start-backend.sh
+```
+
 启动后可检查：
 
 ```bash
