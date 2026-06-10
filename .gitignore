@@ -62,3 +62,6 @@ replace_images.py
 replace_images_safe.py
 rewrite_chat.py
 update_home.py
+
+# superpower
+.superpowers/
