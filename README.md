@@ -1,8 +1,8 @@
 # TPS 校园二手交易系统
 
-TPS 是一个校园二手交易 APP，仓库内包含 Android 客户端、Spring Boot 后端和联调脚本。
+TPS 是一个校园二手交易项目，包含 Android 客户端、Spring Boot 后端和本地联调脚本。
 
-## 前置需求
+## 运行
 
 - JDK 17
 - Maven 3.8 或更高版本
@@ -16,9 +16,17 @@ TPS 是一个校园二手交易 APP，仓库内包含 Android 客户端、Spring
 ./deploy/first-deploy.sh
 ```
 
-常用默认值：
+Android：
 
-- 数据库账号密码：`root / root`
+```bash
+cd /home/hzxf/project/exchangepro/TPS
+./build-android-lan.sh 192.168.93.171
+```
+
+## 默认账号
+
+- 管理员手机号：`18888888888`
+- 管理员密码：`admin123`
 - 开发验证码：`1234`
 - 默认管理员：`18888888888 / admin123`
 

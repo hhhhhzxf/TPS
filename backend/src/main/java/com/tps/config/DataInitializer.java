@@ -55,6 +55,7 @@ public class DataInitializer implements ApplicationRunner {
         execute("ALTER TABLE products ADD COLUMN takedown_at DATETIME NULL COMMENT '管理员下架时间'");
 
         execute("ALTER TABLE messages ADD COLUMN is_read TINYINT DEFAULT 0 COMMENT '是否已读'");
+        execute("ALTER TABLE reports ADD COLUMN evidence_image_urls VARCHAR(1000) NULL COMMENT '举报凭证图片URL，逗号分隔'");
 
         execute("ALTER TABLE orders ADD COLUMN tracking_number VARCHAR(100) NULL COMMENT '物流单号'");
         execute("ALTER TABLE orders MODIFY COLUMN status ENUM('PENDING','PAID','SHIPPED','DONE','CANCELLED','REFUNDING','REFUNDED') DEFAULT 'PENDING' COMMENT '订单状态'");

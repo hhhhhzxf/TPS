@@ -127,6 +127,11 @@ data class ProductCommentRequest(
     val content: String
 )
 
+data class ReportProductRequest(
+    val reason: String,
+    val evidenceImageUrls: List<String> = emptyList()
+)
+
 // Order
 data class OrderDto(
     val id: Long,
@@ -204,6 +209,7 @@ data class ReportDto(
     val productTitle: String? = null,
     val productImageUrl: String? = null,
     val reason: String?,
+    val evidenceImageUrls: List<String>? = null,
     val status: String,
     val createdAt: String?
 )

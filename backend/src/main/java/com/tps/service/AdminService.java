@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Arrays;
 
 @Service
 @RequiredArgsConstructor
@@ -265,6 +266,11 @@ public class AdminService {
                 .findFirst()
                 .ifPresent(image -> response.setProductImageUrl(fileService.toAbsoluteUrl(image.getImageUrl())));
         response.setReason(report.getReason());
+        if (report.getEvidenceImageUrls() != null && !report.getEvidenceImageUrls().isBlank()) {
+            response.setEvidenceImageUrls(Arrays.stream(report.getEvidenceImageUrls().split(","))
+                    .filter(url -> !url.isBlank())
+                    .toList());
+        }
         response.setStatus(report.getStatus().name());
         response.setCreatedAt(report.getCreatedAt());
         return response;

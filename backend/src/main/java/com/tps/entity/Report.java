@@ -26,6 +26,9 @@ public class Report {
     @Column(length = 255)
     private String reason;
 
+    @Column(name = "evidence_image_urls", length = 1000)
+    private String evidenceImageUrls;
+
     @Enumerated(EnumType.STRING)
     private ReportStatus status = ReportStatus.PENDING;
 

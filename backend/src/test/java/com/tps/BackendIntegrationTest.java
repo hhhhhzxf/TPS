@@ -451,6 +451,13 @@ class BackendIntegrationTest {
                 .andExpect(jsonPath("$.message").value("未登录或登录已过期"));
     }
 
+    @Test
+    void actuatorHealthIsPublic() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"));
+    }
+
     private JsonNode register(String phone, String nickname) throws Exception {
         String body = mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)

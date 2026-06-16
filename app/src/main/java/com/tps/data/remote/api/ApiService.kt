@@ -84,6 +84,12 @@ interface ApiService {
     @POST("api/products/{id}/bump")
     suspend fun bumpProduct(@Path("id") id: Long): ApiResponse<ProductDto>
 
+    @POST("api/products/{id}/report")
+    suspend fun reportProduct(
+        @Path("id") id: Long,
+        @Body req: ReportProductRequest
+    ): ApiResponse<Unit>
+
     @GET("api/users/{id}/products")
     suspend fun getUserProducts(@Path("id") id: Long): ApiResponse<List<ProductDto>>
 

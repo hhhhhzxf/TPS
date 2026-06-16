@@ -6,10 +6,9 @@ package com.tps.controller;
 
 import com.tps.dto.ApiResponse;
 import com.tps.dto.PageResponse;
-import com.tps.security.JwtUtil;
 import com.tps.service.BrowsingHistoryService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,35 +17,29 @@ import org.springframework.web.bind.annotation.*;
 public class BrowsingHistoryController {
 
     private final BrowsingHistoryService historyService;
-    private final JwtUtil jwtUtil;
 
     @PostMapping("/{productId}")
-    public ApiResponse<?> record(@PathVariable Long productId, HttpServletRequest request) {
-        historyService.record(getUserId(request), productId);
+    public ApiResponse<?> record(@PathVariable Long productId, @AuthenticationPrincipal Long userId) {
+        historyService.record(userId, productId);
         return ApiResponse.success();
     }
 
     @GetMapping
-    public ApiResponse<?> list(HttpServletRequest request,
+    public ApiResponse<?> list(@AuthenticationPrincipal Long userId,
                                @RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "20") int size) {
-        return ApiResponse.success(PageResponse.from(historyService.list(getUserId(request), page, size)));
+        return ApiResponse.success(PageResponse.from(historyService.list(userId, page, size)));
     }
 
     @DeleteMapping
-    public ApiResponse<?> clear(HttpServletRequest request) {
-        historyService.clear(getUserId(request));
+    public ApiResponse<?> clear(@AuthenticationPrincipal Long userId) {
+        historyService.clear(userId);
         return ApiResponse.success();
     }
 
     @DeleteMapping("/{productId}")
-    public ApiResponse<?> delete(@PathVariable Long productId, HttpServletRequest request) {
-        historyService.delete(getUserId(request), productId);
+    public ApiResponse<?> delete(@PathVariable Long productId, @AuthenticationPrincipal Long userId) {
+        historyService.delete(userId, productId);
         return ApiResponse.success();
-    }
-
-    private Long getUserId(HttpServletRequest request) {
-        String token = request.getHeader("Authorization").substring(7);
-        return jwtUtil.getUserId(token);
     }
 }

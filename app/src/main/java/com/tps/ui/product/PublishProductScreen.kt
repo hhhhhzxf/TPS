@@ -54,6 +54,7 @@ fun PublishProductScreen(onBack: () -> Unit, viewModel: PublishProductViewModel 
     val canPublish = title.isNotBlank() && category.isNotBlank() && priceValue != null && priceValue > 0.0
     val categories = listOf("数码", "服装", "书籍", "家居", "运动", "其他")
     val conditions = listOf("NEW" to "全新", "LIKE_NEW" to "几乎全新", "GOOD" to "成色好", "FAIR" to "有使用痕迹")
+    val defaultLocations = listOf("图书馆门口", "一食堂门口", "宿舍区门口", "教学楼大厅", "操场看台", "快递站旁")
 
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         viewModel.addImages(uris)
@@ -141,41 +142,38 @@ fun PublishProductScreen(onBack: () -> Unit, viewModel: PublishProductViewModel 
                 shape = RoundedCornerShape(18.dp),
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal)
             )
-            }
-            }
-
             MarketCard {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("分类", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MarketInk)
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(categories) { cat ->
-                    FilterChip(
-                        selected = category == cat,
-                        onClick = { category = cat },
-                        label = { Text(cat) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color(0xFFE5F4EE),
-                            selectedLabelColor = MarketGreen
-                        )
-                    )
-                }
-            }
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("分类", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MarketInk)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(categories) { cat ->
+                            FilterChip(
+                                selected = category == cat,
+                                onClick = { category = cat },
+                                label = { Text(cat) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = Color(0xFFE5F4EE),
+                                    selectedLabelColor = MarketGreen
+                                )
+                            )
+                        }
+                    }
 
-            Text("成色", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MarketInk)
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(conditions) { (value, label) ->
-                    FilterChip(
-                        selected = condition == value,
-                        onClick = { condition = value },
-                        label = { Text(label) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Color(0xFFE5F4EE),
-                            selectedLabelColor = MarketGreen
-                        )
-                    )
+                    Text("成色", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MarketInk)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(conditions) { (value, label) ->
+                            FilterChip(
+                                selected = condition == value,
+                                onClick = { condition = value },
+                                label = { Text(label) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = Color(0xFFE5F4EE),
+                                    selectedLabelColor = MarketGreen
+                                )
+                            )
+                        }
+                    }
                 }
-            }
-            }
             }
 
             MarketCard {
@@ -188,6 +186,15 @@ fun PublishProductScreen(onBack: () -> Unit, viewModel: PublishProductViewModel 
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp)
                     )
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(defaultLocations) { defaultLocation ->
+                            FilterChip(
+                                selected = location == defaultLocation,
+                                onClick = { location = defaultLocation },
+                                label = { Text(defaultLocation) }
+                            )
+                        }
+                    }
                     Text("建议选择校内公共区域，不填写宿舍门牌等隐私信息。", color = MarketMuted, style = MaterialTheme.typography.bodySmall)
                 }
             }
@@ -196,7 +203,6 @@ fun PublishProductScreen(onBack: () -> Unit, viewModel: PublishProductViewModel 
             if (!canPublish) {
                 Text("填写标题、价格并选择分类后即可发布", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-        }
         }
     }
 }

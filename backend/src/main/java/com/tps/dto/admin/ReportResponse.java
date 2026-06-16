@@ -7,6 +7,7 @@ package com.tps.dto.admin;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class ReportResponse {
@@ -16,6 +17,7 @@ public class ReportResponse {
     private String productTitle;
     private String productImageUrl;
     private String reason;
+    private List<String> evidenceImageUrls;
     private String status;
     private LocalDateTime createdAt;
 }

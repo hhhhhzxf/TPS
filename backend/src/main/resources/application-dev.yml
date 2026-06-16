@@ -24,9 +24,14 @@ spring:
       enabled: true
       path: /h2-console
 
+  flyway:
+    enabled: false
+
 app:
   public-base-url: ${TPS_PUBLIC_BASE_URL:http://127.0.0.1:8080}
 
 logging:
+  pattern:
+    level: "requestId:%X{requestId} %5p"
   level:
     com.tps: DEBUG

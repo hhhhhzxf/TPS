@@ -4,18 +4,26 @@ package com.tps.ui.product
  * 文件说明：商品模块状态管理，负责商品列表、详情、发布与状态流转的数据编排。
  */
 
+import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tps.data.remote.api.ApiService
 import com.tps.data.remote.dto.ProductCommentDto
 import com.tps.data.remote.dto.ProductCommentRequest
 import com.tps.data.remote.dto.ProductDto
+import com.tps.data.remote.dto.ReportProductRequest
 import com.tps.util.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
 data class ProductDetailUiState(
@@ -31,11 +39,14 @@ data class ProductDetailUiState(
     val actionSuccess: String? = null,
     val comments: List<ProductCommentDto> = emptyList(),
     val commentsLoading: Boolean = false,
-    val commentSubmitting: Boolean = false
+    val commentSubmitting: Boolean = false,
+    val reportSubmitted: Boolean = false,
+    val isReporting: Boolean = false
 )
 
 @HiltViewModel
 class ProductDetailViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val apiService: ApiService,
     private val tokenManager: TokenManager
 ) : ViewModel() {
@@ -47,11 +58,9 @@ class ProductDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
-                // 详情接口会顺带返回当前用户是否已收藏，页面据此一次性初始化多个按钮状态。
                 val resp = apiService.getProduct(productId)
                 val product = resp.data
                 val isOwner = product?.userId == tokenManager.getUserId()
-
                 _uiState.value = _uiState.value.copy(
                     product = product,
                     isLoading = false,
@@ -161,7 +170,6 @@ class ProductDetailViewModel @Inject constructor(
     fun startChat(sellerId: Long, productId: Long) {
         viewModelScope.launch {
             try {
-                // 联系卖家前先让后端按“商品 + 买家 + 卖家”归一化会话，避免同一商品反复生成新会话。
                 val resp = apiService.getOrCreateConversation(targetUserId = sellerId, productId = productId)
                 resp.data?.let { _uiState.value = _uiState.value.copy(navigateToChatId = it.id) }
             } catch (e: Exception) {
@@ -196,20 +204,6 @@ class ProductDetailViewModel @Inject constructor(
         }
     }
 
-    fun bumpProduct(productId: Long) {
-        viewModelScope.launch {
-            try {
-                val resp = apiService.bumpProduct(productId)
-                _uiState.value = _uiState.value.copy(
-                    product = resp.data ?: _uiState.value.product,
-                    actionSuccess = "商品已擦亮"
-                )
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = e.message)
-            }
-        }
-    }
-
     fun updateStatus(productId: Long, status: String) {
         viewModelScope.launch {
             try {
@@ -224,22 +218,65 @@ class ProductDetailViewModel @Inject constructor(
         }
     }
 
-    fun reportProduct(productId: Long, reason: String) {
+    fun bumpProduct(productId: Long) {
+        viewModelScope.launch {
+            try {
+                val resp = apiService.bumpProduct(productId)
+                _uiState.value = _uiState.value.copy(product = resp.data ?: _uiState.value.product, actionSuccess = "商品已擦亮")
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message)
+            }
+        }
+    }
+
+    fun reportProduct(productId: Long, reason: String, evidenceUris: List<Uri>) {
         if (reason.isBlank()) {
             _uiState.value = _uiState.value.copy(error = "请填写举报原因")
             return
         }
         viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isReporting = true, error = null, reportSubmitted = false)
             try {
-                apiService.reportProduct(productId, reason.trim())
-                _uiState.value = _uiState.value.copy(actionSuccess = "举报已提交，平台将进行审核")
+                val evidenceUrls = evidenceUris.mapNotNull { uploadEvidenceImage(it) }
+                val resp = apiService.reportProduct(
+                    productId,
+                    ReportProductRequest(reason = reason.trim(), evidenceImageUrls = evidenceUrls)
+                )
+                if (resp.code == 200) {
+                    _uiState.value = _uiState.value.copy(isReporting = false, reportSubmitted = true, actionSuccess = "举报已提交，平台将进行审核")
+                } else {
+                    _uiState.value = _uiState.value.copy(isReporting = false, error = resp.message)
+                }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = e.message ?: "举报失败")
+                _uiState.value = _uiState.value.copy(isReporting = false, error = e.message ?: "举报失败")
             }
         }
     }
 
     fun consumeActionSuccess() {
         _uiState.value = _uiState.value.copy(actionSuccess = null)
+    }
+
+    fun consumeReportSubmitted() {
+        _uiState.value = _uiState.value.copy(reportSubmitted = false)
+    }
+
+    private suspend fun uploadEvidenceImage(uri: Uri): String? {
+        val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
+        val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
+        val body = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
+        val part = MultipartBody.Part.createFormData("file", resolveFileName(uri), body)
+        return apiService.uploadImage(part).data?.url
+    }
+
+    private fun resolveFileName(uri: Uri): String {
+        context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (nameIndex >= 0 && cursor.moveToFirst()) {
+                val name = cursor.getString(nameIndex)
+                if (!name.isNullOrBlank()) return name
+            }
+        }
+        return "report-evidence.jpg"
     }
 }

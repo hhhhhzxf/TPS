@@ -4,6 +4,10 @@ package com.tps.ui.product
  * 文件说明：商品模块界面，负责商品浏览、详情或发布流程的 Compose 展示。
  */
 
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -29,8 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
 import com.tps.data.remote.dto.ProductCommentDto
 import com.tps.ui.theme.AppAsyncImage
 import com.tps.ui.theme.MarketBottomActions
@@ -38,6 +42,7 @@ import com.tps.ui.theme.MarketGreen
 import com.tps.ui.theme.MarketInk
 import com.tps.ui.theme.MarketOrange
 import com.tps.util.resolveMediaUrl
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,6 +54,7 @@ fun ProductDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showReportSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(productId) { viewModel.load(productId) }
     LaunchedEffect(uiState.navigateToChatId) {
@@ -75,6 +81,24 @@ fun ProductDetailScreen(
             viewModel.consumeActionSuccess()
         }
     }
+    LaunchedEffect(uiState.reportSubmitted) {
+        if (uiState.reportSubmitted) {
+            showReportSheet = false
+            snackbarHostState.showSnackbar("举报已提交，管理员会尽快审核")
+            viewModel.consumeReportSubmitted()
+        }
+    }
+
+    if (showReportSheet) {
+        ReportProductSheet(
+            productTitle = uiState.product?.title.orEmpty(),
+            isSubmitting = uiState.isReporting,
+            onDismiss = { if (!uiState.isReporting) showReportSheet = false },
+            onSubmit = { reason, evidenceUris ->
+                viewModel.reportProduct(productId, reason, evidenceUris)
+            }
+        )
+    }
 
     Scaffold(
         containerColor = Color(0xFFF5F7F6),
@@ -83,8 +107,6 @@ fun ProductDetailScreen(
             uiState.product?.let { product ->
                 var showMenu by remember { mutableStateOf(false) }
                 var showDeleteDialog by remember { mutableStateOf(false) }
-                var showReportDialog by remember { mutableStateOf(false) }
-                var reportReason by remember { mutableStateOf("") }
                 if (showDeleteDialog) {
                     AlertDialog(
                         onDismissRequest = { showDeleteDialog = false },
@@ -95,47 +117,6 @@ fun ProductDetailScreen(
                         },
                         dismissButton = {
                             TextButton(onClick = { showDeleteDialog = false }) { Text("取消") }
-                        }
-                    )
-                }
-                if (showReportDialog) {
-                    AlertDialog(
-                        onDismissRequest = {
-                            showReportDialog = false
-                            reportReason = ""
-                        },
-                        title = { Text("举报商品") },
-                        text = {
-                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Text("请说明该商品存在的问题，平台管理员会在后台审核。")
-                                OutlinedTextField(
-                                    value = reportReason,
-                                    onValueChange = { reportReason = it.take(255) },
-                                    label = { Text("举报原因") },
-                                    minLines = 3,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                                Text("${reportReason.length}/255", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        },
-                        confirmButton = {
-                            Button(
-                                onClick = {
-                                    viewModel.reportProduct(product.id, reportReason)
-                                    showReportDialog = false
-                                    reportReason = ""
-                                },
-                                enabled = reportReason.isNotBlank(),
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                            ) {
-                                Text("提交举报")
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = {
-                                showReportDialog = false
-                                reportReason = ""
-                            }) { Text("取消") }
                         }
                     )
                 }
@@ -161,14 +142,8 @@ fun ProductDetailScreen(
                                 )
                             }
                         } else {
-                            IconButton(onClick = { showMenu = true }) {
-                                Icon(Icons.Default.MoreVert, "更多操作")
-                            }
-                            DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-                                DropdownMenuItem(
-                                    text = { Text("举报商品", color = MaterialTheme.colorScheme.error) },
-                                    onClick = { showMenu = false; showReportDialog = true }
-                                )
+                            IconButton(onClick = { showReportSheet = true }) {
+                                Icon(Icons.Default.Report, "举报商品")
                             }
                         }
                     }
@@ -491,6 +466,16 @@ private fun ProductCommentsCard(
                             Text("发布")
                         }
                     }
+                    if (!uiState.isOwner) {
+                        TextButton(
+                            onClick = { showReportSheet = true },
+                            modifier = Modifier.padding(horizontal = 12.dp).fillMaxWidth()
+                        ) {
+                            Icon(Icons.Default.Report, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("举报该商品")
+                        }
+                    }
                 }
             }
         }
@@ -606,6 +591,113 @@ private fun formatCommentTime(value: String?): String {
         normalized.length >= 16 -> normalized.substring(0, 16)
         else -> normalized
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ReportProductSheet(
+    productTitle: String,
+    isSubmitting: Boolean,
+    onDismiss: () -> Unit,
+    onSubmit: (String, List<Uri>) -> Unit
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var reason by remember { mutableStateOf("") }
+    var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
+    var evidenceUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
+
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        val uri = pendingCameraUri
+        if (success && uri != null) {
+            evidenceUris = (evidenceUris + uri).take(3)
+        }
+        pendingCameraUri = null
+    }
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
+        evidenceUris = (evidenceUris + uris).distinct().take(3)
+    }
+
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text("举报商品", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(productTitle, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            OutlinedTextField(
+                value = reason,
+                onValueChange = { reason = it },
+                label = { Text("举报原因") },
+                placeholder = { Text("例如：疑似违禁品、虚假描述、价格欺诈") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3,
+                shape = RoundedCornerShape(18.dp)
+            )
+            Text("举报凭证（最多3张）", fontWeight = FontWeight.Bold)
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(evidenceUris) { uri ->
+                    Box {
+                        AppAsyncImage(
+                            url = uri.toString(),
+                            contentDescription = null,
+                            modifier = Modifier.size(76.dp).clip(RoundedCornerShape(16.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        IconButton(
+                            onClick = { evidenceUris = evidenceUris.filterNot { it == uri } },
+                            modifier = Modifier.align(Alignment.TopEnd).size(24.dp)
+                        ) {
+                            Icon(Icons.Default.Close, null, tint = Color.White)
+                        }
+                    }
+                }
+                if (evidenceUris.size < 3) {
+                    item {
+                        OutlinedButton(
+                            onClick = {
+                                val uri = createCameraImageUri(context)
+                                pendingCameraUri = uri
+                                cameraLauncher.launch(uri)
+                            },
+                            modifier = Modifier.height(76.dp)
+                        ) {
+                            Icon(Icons.Default.PhotoCamera, null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("拍照")
+                        }
+                    }
+                    item {
+                        OutlinedButton(
+                            onClick = { galleryLauncher.launch("image/*") },
+                            modifier = Modifier.height(76.dp)
+                        ) {
+                            Icon(Icons.Default.Image, null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("相册")
+                        }
+                    }
+                }
+            }
+            Button(
+                onClick = { onSubmit(reason.trim(), evidenceUris) },
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                enabled = !isSubmitting && reason.trim().length >= 2,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5A1F))
+            ) {
+                if (isSubmitting) {
+                    CircularProgressIndicator(Modifier.size(18.dp), color = Color.White)
+                } else {
+                    Text("提交举报")
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+        }
+    }
+}
+
+private fun createCameraImageUri(context: Context): Uri {
+    val imageFile = File.createTempFile("report-evidence-", ".jpg", context.cacheDir)
+    return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", imageFile)
 }
 
 @Composable

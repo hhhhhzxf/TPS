@@ -23,7 +23,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,6 +42,18 @@ public class ProductService {
     private final ReportRepository reportRepository;
     private final NotificationRepository notificationRepository;
     private final ReviewRepository reviewRepository;
+
+    private static final List<Set<String>> SENSITIVE_KEYWORD_GROUPS = List.of(
+            Set.of("烟", "香烟", "电子烟", "烟草", "vape"),
+            Set.of("酒", "白酒", "啤酒", "洋酒", "酒精"),
+            Set.of("代考", "替考", "考试答案", "答案"),
+            Set.of("代课", "替课", "签到", "代签"),
+            Set.of("代跑", "跑腿", "代取", "代拿"),
+            Set.of("管制刀具", "刀具", "匕首", "甩棍"),
+            Set.of("校园贷", "贷款", "借贷", "套现"),
+            Set.of("药", "处方药", "违禁药", "迷药"),
+            Set.of("博彩", "赌博", "下注", "彩票")
+    );
 
     @Transactional
     public ProductResponse create(Long userId, ProductRequest req) {
@@ -78,10 +94,17 @@ public class ProductService {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("status"), Product.ProductStatus.ON_SALE));
             if (keyword != null && !keyword.isBlank()) {
-                predicates.add(cb.or(
-                        cb.like(root.get("title"), "%" + keyword + "%"),
-                        cb.like(root.get("description"), "%" + keyword + "%")
-                ));
+                List<Predicate> keywordPredicates = new ArrayList<>();
+                for (String term : expandSearchTerms(keyword)) {
+                    String pattern = "%" + term.toLowerCase(Locale.ROOT) + "%";
+                    keywordPredicates.add(cb.like(cb.lower(root.get("title")), pattern));
+                    keywordPredicates.add(cb.like(cb.lower(root.get("description")), pattern));
+                    keywordPredicates.add(cb.like(cb.lower(root.get("location")), pattern));
+                    keywordPredicates.add(cb.like(cb.lower(root.get("category")), pattern));
+                }
+                if (!keywordPredicates.isEmpty()) {
+                    predicates.add(cb.or(keywordPredicates.toArray(new Predicate[0])));
+                }
             }
             if (category != null && !category.isBlank()) {
                 predicates.add(cb.equal(root.get("category"), category));
@@ -185,7 +208,7 @@ public class ProductService {
     }
 
     @Transactional
-    public void report(Long userId, Long productId, String reason) {
+    public void report(Long userId, Long productId, String reason, List<String> evidenceImageUrls) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("商品不存在"));
         if (product.getUserId().equals(userId)) {
@@ -198,6 +221,7 @@ public class ProductService {
         report.setReporterId(userId);
         report.setProductId(productId);
         report.setReason(reason);
+        report.setEvidenceImageUrls(serializeEvidenceImageUrls(evidenceImageUrls));
         reportRepository.save(report);
 
         Notification notification = new Notification();
@@ -206,6 +230,41 @@ public class ProductService {
         notification.setTitle("商品被举报");
         notification.setContent("你的商品被用户举报，平台将进行审核");
         notificationRepository.save(notification);
+    }
+
+    private List<String> expandSearchTerms(String keyword) {
+        String normalized = normalizeKeyword(keyword);
+        if (normalized.isBlank()) {
+            return List.of();
+        }
+        LinkedHashSet<String> terms = new LinkedHashSet<>();
+        terms.add(keyword.trim());
+        terms.add(normalized);
+        Arrays.stream(normalized.split("\\s+"))
+                .filter(token -> !token.isBlank())
+                .forEach(terms::add);
+        for (Set<String> group : SENSITIVE_KEYWORD_GROUPS) {
+            boolean hit = group.stream().map(this::normalizeKeyword).anyMatch(terms::contains);
+            if (hit) {
+                terms.addAll(group);
+            }
+        }
+        return terms.stream().filter(term -> !term.isBlank()).toList();
+    }
+
+    private String normalizeKeyword(String value) {
+        if (value == null) return "";
+        return value.toLowerCase(Locale.ROOT)
+                .replaceAll("[\\p{Punct}\\s　]+", "")
+                .trim();
+    }
+
+    private String serializeEvidenceImageUrls(List<String> urls) {
+        if (urls == null || urls.isEmpty()) return null;
+        return urls.stream()
+                .filter(url -> url != null && !url.isBlank())
+                .limit(3)
+                .collect(Collectors.joining(","));
     }
 
     public ProductResponse toResponse(Product p, Long currentUserId) {
