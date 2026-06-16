@@ -13,11 +13,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class DataInitializer implements ApplicationRunner {
 
     private static final String ADMIN_PHONE = "18888888888";
+    private static final String ADMIN_STUDENT_ID = "00000000";
     private static final String ADMIN_PASSWORD = "admin123";
 
     private final UserRepository userRepository;
@@ -29,9 +32,16 @@ public class DataInitializer implements ApplicationRunner {
         // 先补兼容迁移，再创建管理员账号，避免老库缺字段时启动即失败。
         applySchemaCompatibilityMigrations();
 
-        User admin = userRepository.findByPhone(ADMIN_PHONE).orElseGet(User::new);
+        Optional<User> userByPhone = userRepository.findByPhone(ADMIN_PHONE);
+        Optional<User> userByStudentId = userRepository.findByStudentId(ADMIN_STUDENT_ID);
+        User admin = userByPhone.or(() -> userByStudentId).orElseGet(User::new);
+        boolean sameStudentIdOwner = userByStudentId.isEmpty()
+                || userByStudentId.get().getId().equals(admin.getId());
+
         admin.setPhone(ADMIN_PHONE);
-        admin.setStudentId("00000000");
+        if (sameStudentIdOwner) {
+            admin.setStudentId(ADMIN_STUDENT_ID);
+        }
         admin.setPasswordHash(passwordEncoder.encode(ADMIN_PASSWORD));
         admin.setNickname("admin");
         admin.setRole(User.Role.ADMIN);

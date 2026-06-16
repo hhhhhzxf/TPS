@@ -466,16 +466,6 @@ private fun ProductCommentsCard(
                             Text("发布")
                         }
                     }
-                    if (!uiState.isOwner) {
-                        TextButton(
-                            onClick = { showReportSheet = true },
-                            modifier = Modifier.padding(horizontal = 12.dp).fillMaxWidth()
-                        ) {
-                            Icon(Icons.Default.Report, null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text("举报该商品")
-                        }
-                    }
                 }
             }
         }

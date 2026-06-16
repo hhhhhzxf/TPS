@@ -92,116 +92,144 @@ fun PublishProductScreen(onBack: () -> Unit, viewModel: PublishProductViewModel 
         }
     ) { padding ->
         MarketBackground {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 18.dp).verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            MarketCard {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("商品图片", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MarketInk)
-            Text("最多 9 张，首图建议拍清主体和瑕疵", color = MarketMuted, style = MaterialTheme.typography.bodySmall)
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(uiState.selectedImages) { uri ->
-                    Box {
-                        AppAsyncImage(url = uri.toString(), contentDescription = null,
-                            modifier = Modifier.size(86.dp).clip(RoundedCornerShape(18.dp)), contentScale = ContentScale.Crop)
-                        IconButton(onClick = { viewModel.removeImage(uri) },
-                            modifier = Modifier.align(Alignment.TopEnd).size(20.dp)) {
-                            Icon(Icons.Default.Close, null)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 18.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                MarketCard {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text("商品图片", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MarketInk)
+                        Text("最多 9 张，首图建议拍清主体和瑕疵", color = MarketMuted, style = MaterialTheme.typography.bodySmall)
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(uiState.selectedImages) { uri ->
+                                Box {
+                                    AppAsyncImage(
+                                        url = uri.toString(),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(86.dp).clip(RoundedCornerShape(18.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    IconButton(
+                                        onClick = { viewModel.removeImage(uri) },
+                                        modifier = Modifier.align(Alignment.TopEnd).size(20.dp)
+                                    ) {
+                                        Icon(Icons.Default.Close, null)
+                                    }
+                                }
+                            }
+                            if (uiState.selectedImages.size < 9) {
+                                item {
+                                    Box(
+                                        Modifier
+                                            .size(86.dp)
+                                            .clip(RoundedCornerShape(18.dp))
+                                            .background(Color(0xFFFFF0E6))
+                                            .border(1.dp, Color(0xFFFFD1BF), RoundedCornerShape(18.dp))
+                                            .clickable { imagePicker.launch("image/*") },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(Icons.Default.Add, null, tint = MarketOrange)
+                                    }
+                                }
+                            }
                         }
+                        OutlinedTextField(
+                            value = title,
+                            onValueChange = { if (it.length <= 100) title = it },
+                            label = { Text("标题，例如 iPad Air 九成新") },
+                            supportingText = { Text("${title.length}/100") },
+                            isError = title.length > 100,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(18.dp)
+                        )
+                        OutlinedTextField(
+                            value = description,
+                            onValueChange = { description = it },
+                            label = { Text("描述成色、配件、交易时间") },
+                            modifier = Modifier.fillMaxWidth(),
+                            minLines = 3,
+                            shape = RoundedCornerShape(18.dp)
+                        )
+                        OutlinedTextField(
+                            value = price,
+                            onValueChange = { value -> price = value.filter { it.isDigit() || it == '.' }.take(10) },
+                            label = { Text("价格（元）") },
+                            supportingText = {
+                                if (price.isNotBlank() && (priceValue == null || priceValue <= 0.0)) Text("请输入大于0的数字")
+                            },
+                            isError = price.isNotBlank() && (priceValue == null || priceValue <= 0.0),
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(18.dp),
+                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal)
+                        )
                     }
                 }
-                if (uiState.selectedImages.size < 9) {
-                    item {
-                        Box(Modifier.size(86.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xFFFFF0E6)).border(1.dp, Color(0xFFFFD1BF), RoundedCornerShape(18.dp)).clickable { imagePicker.launch("image/*") },
-                            contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.Add, null, tint = MarketOrange)
-                        }
-                    }
-                }
-            }
-            OutlinedTextField(
-                value = title,
-                onValueChange = { if (it.length <= 100) title = it },
-                label = { Text("标题，例如 iPad Air 九成新") },
-                supportingText = { Text("${title.length}/100") },
-                isError = title.length > 100,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp)
-            )
-            OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("描述成色、配件、交易时间") }, modifier = Modifier.fillMaxWidth(), minLines = 3, shape = RoundedCornerShape(18.dp))
-            OutlinedTextField(
-                value = price,
-                onValueChange = { value -> price = value.filter { it.isDigit() || it == '.' }.take(10) },
-                label = { Text("价格（元）") },
-                supportingText = {
-                    if (price.isNotBlank() && (priceValue == null || priceValue <= 0.0)) Text("请输入大于0的数字")
-                },
-                isError = price.isNotBlank() && (priceValue == null || priceValue <= 0.0),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal)
-            )
-            MarketCard {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("分类", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MarketInk)
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(categories) { cat ->
-                            FilterChip(
-                                selected = category == cat,
-                                onClick = { category = cat },
-                                label = { Text(cat) },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = Color(0xFFE5F4EE),
-                                    selectedLabelColor = MarketGreen
+
+                MarketCard {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("分类", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MarketInk)
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(categories) { cat ->
+                                FilterChip(
+                                    selected = category == cat,
+                                    onClick = { category = cat },
+                                    label = { Text(cat) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Color(0xFFE5F4EE),
+                                        selectedLabelColor = MarketGreen
+                                    )
                                 )
-                            )
+                            }
                         }
-                    }
 
-                    Text("成色", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MarketInk)
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(conditions) { (value, label) ->
-                            FilterChip(
-                                selected = condition == value,
-                                onClick = { condition = value },
-                                label = { Text(label) },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = Color(0xFFE5F4EE),
-                                    selectedLabelColor = MarketGreen
+                        Text("成色", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MarketInk)
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(conditions) { (value, label) ->
+                                FilterChip(
+                                    selected = condition == value,
+                                    onClick = { condition = value },
+                                    label = { Text(label) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Color(0xFFE5F4EE),
+                                        selectedLabelColor = MarketGreen
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
                 }
-            }
 
-            MarketCard {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("交易地点", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MarketInk)
-                    OutlinedTextField(
-                        value = location,
-                        onValueChange = { location = it },
-                        label = { Text("如 图书馆北门") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(18.dp)
-                    )
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(defaultLocations) { defaultLocation ->
-                            FilterChip(
-                                selected = location == defaultLocation,
-                                onClick = { location = defaultLocation },
-                                label = { Text(defaultLocation) }
-                            )
+                MarketCard {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("交易地点", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MarketInk)
+                        OutlinedTextField(
+                            value = location,
+                            onValueChange = { location = it },
+                            label = { Text("如 图书馆北门") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(18.dp)
+                        )
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(defaultLocations) { defaultLocation ->
+                                FilterChip(
+                                    selected = location == defaultLocation,
+                                    onClick = { location = defaultLocation },
+                                    label = { Text(defaultLocation) }
+                                )
+                            }
                         }
+                        Text("建议选择校内公共区域，不填写宿舍门牌等隐私信息。", color = MarketMuted, style = MaterialTheme.typography.bodySmall)
                     }
-                    Text("建议选择校内公共区域，不填写宿舍门牌等隐私信息。", color = MarketMuted, style = MaterialTheme.typography.bodySmall)
                 }
-            }
 
-            if (uiState.error != null) Text(uiState.error!!, color = MaterialTheme.colorScheme.error)
-            if (!canPublish) {
-                Text("填写标题、价格并选择分类后即可发布", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (uiState.error != null) Text(uiState.error!!, color = MaterialTheme.colorScheme.error)
+                if (!canPublish) {
+                    Text("填写标题、价格并选择分类后即可发布", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
     }
