@@ -183,4 +183,7 @@ CREATE TABLE IF NOT EXISTS feedback (
 
 -- 初始管理员账号（密码: admin123，启动时 DataInitializer 也会确保该账号存在）
 INSERT IGNORE INTO users (phone, student_id, password_hash, nickname, role, status)
-VALUES ('18888888888', '00000000', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'admin', 'ADMIN', 'ACTIVE');
+VALUES
+  ('18888888888', '00000000', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'admin', 'ADMIN', 'ACTIVE'),
+  ('18888888881', '00000001', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'admin1', 'ADMIN', 'ACTIVE'),
+  ('18888888882', '00000002', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'admin2', 'ADMIN', 'ACTIVE');

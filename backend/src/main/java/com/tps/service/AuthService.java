@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -21,8 +23,11 @@ public class AuthService {
     private final JwtUtil jwtUtil;
 
     private static final String MOCK_CODE = "1234";
-    private static final String ADMIN_LOGIN_NAME = "admin";
-    private static final String ADMIN_PHONE = "18888888888";
+    private static final Map<String, String> ADMIN_LOGIN_PHONES = Map.of(
+            "admin", "18888888888",
+            "admin1", "18888888881",
+            "admin2", "18888888882"
+    );
 
     public void sendCode(String phone) {
         // 开发阶段固定验证码1234，不做实际发送
@@ -49,7 +54,7 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest req) {
         String loginName = req.getPhone();
-        String phone = ADMIN_LOGIN_NAME.equalsIgnoreCase(loginName) ? ADMIN_PHONE : loginName;
+        String phone = ADMIN_LOGIN_PHONES.getOrDefault(loginName.toLowerCase(), loginName);
         User user = userRepository.findByPhone(phone)
                 .or(() -> userRepository.findByStudentId(loginName))
                 .orElseThrow(() -> new IllegalArgumentException("账号未注册"));

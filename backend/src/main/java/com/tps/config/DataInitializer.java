@@ -13,15 +13,19 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 public class DataInitializer implements ApplicationRunner {
 
-    private static final String ADMIN_PHONE = "18888888888";
-    private static final String ADMIN_STUDENT_ID = "00000000";
     private static final String ADMIN_PASSWORD = "admin123";
+    private static final List<AdminSeed> ADMIN_SEEDS = List.of(
+            new AdminSeed("admin", "18888888888", "00000000"),
+            new AdminSeed("admin1", "18888888881", "00000001"),
+            new AdminSeed("admin2", "18888888882", "00000002")
+    );
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -32,18 +36,22 @@ public class DataInitializer implements ApplicationRunner {
         // 先补兼容迁移，再创建管理员账号，避免老库缺字段时启动即失败。
         applySchemaCompatibilityMigrations();
 
-        Optional<User> userByPhone = userRepository.findByPhone(ADMIN_PHONE);
-        Optional<User> userByStudentId = userRepository.findByStudentId(ADMIN_STUDENT_ID);
+        ADMIN_SEEDS.forEach(this::ensureAdminExists);
+    }
+
+    private void ensureAdminExists(AdminSeed seed) {
+        Optional<User> userByPhone = userRepository.findByPhone(seed.phone());
+        Optional<User> userByStudentId = userRepository.findByStudentId(seed.studentId());
         User admin = userByPhone.or(() -> userByStudentId).orElseGet(User::new);
         boolean sameStudentIdOwner = userByStudentId.isEmpty()
                 || userByStudentId.get().getId().equals(admin.getId());
 
-        admin.setPhone(ADMIN_PHONE);
+        admin.setPhone(seed.phone());
         if (sameStudentIdOwner) {
-            admin.setStudentId(ADMIN_STUDENT_ID);
+            admin.setStudentId(seed.studentId());
         }
         admin.setPasswordHash(passwordEncoder.encode(ADMIN_PASSWORD));
-        admin.setNickname("admin");
+        admin.setNickname(seed.loginName());
         admin.setRole(User.Role.ADMIN);
         admin.setStatus(User.UserStatus.ACTIVE);
         userRepository.save(admin);
@@ -110,5 +118,8 @@ public class DataInitializer implements ApplicationRunner {
         } catch (Exception ignored) {
             // Best-effort migration for existing local databases; duplicate columns/indexes are expected.
         }
+    }
+
+    private record AdminSeed(String loginName, String phone, String studentId) {
     }
 }

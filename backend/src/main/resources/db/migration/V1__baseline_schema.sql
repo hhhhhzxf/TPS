@@ -151,4 +151,7 @@ CREATE TABLE IF NOT EXISTS feedback (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT IGNORE INTO users (phone, student_id, password_hash, nickname, role, status)
-VALUES ('18000000000', '00000000', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '平台管理员', 'ADMIN', 'ACTIVE');
+VALUES
+  ('18888888888', '00000000', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'admin', 'ADMIN', 'ACTIVE'),
+  ('18888888881', '00000001', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'admin1', 'ADMIN', 'ACTIVE'),
+  ('18888888882', '00000002', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'admin2', 'ADMIN', 'ACTIVE');

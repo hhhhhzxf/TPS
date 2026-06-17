@@ -79,6 +79,18 @@ class BackendIntegrationTest {
     }
 
     @Test
+    void seededAdminAliasesCanLogin() throws Exception {
+        for (String loginName : List.of("admin", "admin1", "admin2")) {
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json(Map.of("phone", loginName, "password", "admin123"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.token", not(emptyString())))
+                    .andExpect(jsonPath("$.data.role").value("ADMIN"));
+        }
+    }
+
+    @Test
     void productUploadFavoriteAndPagingUseMobileFriendlyDtos() throws Exception {
         String token = register("13800138001", "seller").at("/data/token").asText();
         String imageUrl = uploadPng(token);
