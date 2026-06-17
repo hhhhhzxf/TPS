@@ -62,6 +62,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -112,6 +114,7 @@ fun HomeProductListScreen(
     viewModel: ProductViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("全部") }
     var pullDistance by remember { mutableStateOf(0f) }
@@ -144,6 +147,12 @@ fun HomeProductListScreen(
             refreshPinned = false
             refreshStarted = false
             pullDistance = 0f
+        }
+    }
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.consumeError()
         }
     }
 
@@ -189,6 +198,7 @@ fun HomeProductListScreen(
                 onRefresh = triggerRefresh
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = Color.Transparent
     ) { innerPadding ->
         LazyVerticalStaggeredGrid(

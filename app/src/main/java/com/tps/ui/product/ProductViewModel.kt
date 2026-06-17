@@ -102,6 +102,10 @@ class ProductViewModel @Inject constructor(
         loadProducts()
     }
 
+    fun consumeError() {
+        _uiState.value = _uiState.value.copy(error = null)
+    }
+
     private fun errorMessage(error: Exception): String {
         return if (lastActionWasSearch && error is HttpException && error.code() == 400) {
             "无法搜索请重试"
