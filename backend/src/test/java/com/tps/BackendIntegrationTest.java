@@ -404,6 +404,31 @@ class BackendIntegrationTest {
     }
 
     @Test
+    void duplicateProductReportIsIdempotentForMobileRetry() throws Exception {
+        String sellerToken = register("13800138144", "seller").at("/data/token").asText();
+        String reporterToken = register("13800138145", "reporter").at("/data/token").asText();
+        String adminToken = createAdmin("13800138146");
+        Long productId = createProduct(sellerToken, null);
+
+        mockMvc.perform(post("/api/products/{id}/report", productId)
+                        .header("Authorization", "Bearer " + reporterToken)
+                        .param("reason", "疑似违规"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/products/{id}/report", productId)
+                        .header("Authorization", "Bearer " + reporterToken)
+                        .param("reason", "补充说明"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/admin/reports")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("productId", String.valueOf(productId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content", hasSize(1)))
+                .andExpect(jsonPath("$.data.content[0].reason").value("疑似违规"));
+    }
+
+    @Test
     void adminUserListSupportsPhoneSearchAndNicknameSort() throws Exception {
         String adminToken = createAdmin("13800138143");
         register("15100000011", "Charlie");

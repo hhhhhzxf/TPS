@@ -229,7 +229,7 @@ public class ProductService {
             throw new IllegalArgumentException("不能举报自己的商品");
         }
         if (reportRepository.existsByReporterIdAndProductId(userId, productId)) {
-            throw new IllegalArgumentException("已举报过该商品");
+            return;
         }
         com.tps.entity.Report report = new com.tps.entity.Report();
         report.setReporterId(userId);

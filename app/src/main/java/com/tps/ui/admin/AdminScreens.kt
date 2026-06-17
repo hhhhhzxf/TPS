@@ -49,6 +49,10 @@ fun AdminUsersScreen(viewModel: AdminViewModel = hiltViewModel()) {
     val currentStatusLabel = statusOptions.firstOrNull { it.second == uiState.userStatus }?.first ?: "全部"
     val currentSortLabel = sortOptions.firstOrNull { it.second.first == uiState.userSort && it.second.second == uiState.userDirection }?.first ?: "创建时间新到旧"
 
+    LaunchedEffect(Unit) {
+        viewModel.loadUsers()
+    }
+
     Scaffold(containerColor = Color.Transparent, topBar = { TopAppBar(title = { Text("用户管理", fontWeight = FontWeight.Bold) }) }) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             item { MarketHeroCard("用户治理", "查看信用与账号状态，快速封禁异常用户。") }
@@ -172,6 +176,11 @@ fun AdminProductsScreen(viewModel: AdminViewModel = hiltViewModel()) {
     var reportTakedownReason by remember { mutableStateOf("") }
     var pendingReportReject by remember { mutableStateOf<ReportDto?>(null) }
     var reportRejectReason by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadListedProducts()
+        viewModel.loadReportedProducts()
+    }
 
     LaunchedEffect(uiState.error, uiState.successMessage) {
         val message = uiState.error ?: uiState.successMessage
@@ -456,6 +465,10 @@ fun AdminOrdersScreen(viewModel: AdminViewModel = hiltViewModel()) {
     var rejectingOrder by remember { mutableStateOf<OrderDto?>(null) }
     var rejectReason by remember { mutableStateOf("") }
 
+    LaunchedEffect(Unit) {
+        viewModel.loadOrders()
+    }
+
     LaunchedEffect(uiState.error, uiState.successMessage) {
         val message = uiState.error ?: uiState.successMessage
         if (message != null) {
@@ -572,6 +585,10 @@ fun AdminFeedbackScreen(viewModel: AdminViewModel = hiltViewModel()) {
         "已完成" to "DONE",
         "已关闭" to "CLOSED"
     )
+
+    LaunchedEffect(Unit) {
+        viewModel.loadFeedback(selectedStatus)
+    }
 
     LaunchedEffect(uiState.error, uiState.successMessage) {
         val message = uiState.error ?: uiState.successMessage
@@ -762,6 +779,9 @@ private fun feedbackStatusColor(status: String): Color = when (status) {
 @Composable
 fun AdminStatsScreen(viewModel: AdminViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
+    LaunchedEffect(Unit) {
+        viewModel.loadStats()
+    }
     Scaffold(containerColor = Color.Transparent, topBar = { TopAppBar(title = { Text("数据统计", fontWeight = FontWeight.Bold) }) }) { padding ->
         Column(
             Modifier.fillMaxSize().padding(padding).padding(16.dp),

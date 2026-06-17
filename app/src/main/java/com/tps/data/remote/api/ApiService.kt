@@ -96,12 +96,6 @@ interface ApiService {
     @GET("api/products/my")
     suspend fun getMyProducts(): ApiResponse<List<ProductDto>>
 
-    @POST("api/products/{id}/report")
-    suspend fun reportProduct(
-        @Path("id") id: Long,
-        @Query("reason") reason: String
-    ): ApiResponse<Unit>
-
     // Favorites
     @POST("api/favorites/{productId}/toggle")
     suspend fun toggleFavorite(@Path("productId") productId: Long): ApiResponse<Boolean>

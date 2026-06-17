@@ -29,7 +29,8 @@ import com.tps.ui.theme.MarketBgTop
 @Composable
 fun AdminMainScreen(
     onLogout: () -> Unit,
-    profileViewModel: ProfileViewModel = hiltViewModel()
+    profileViewModel: ProfileViewModel = hiltViewModel(),
+    adminViewModel: AdminViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
     val profileState by profileViewModel.uiState.collectAsState()
@@ -79,11 +80,11 @@ fun AdminMainScreen(
                 .background(Brush.verticalGradient(listOf(MarketBgTop, Color.White, MarketBgBottom)))
                 .padding(padding)
         ) {
-            composable("admin_users") { AdminUsersScreen() }
-            composable("admin_products") { AdminProductsScreen() }
-            composable("admin_orders") { AdminOrdersScreen() }
-            composable("admin_feedback") { AdminFeedbackScreen() }
-            composable("admin_stats") { AdminStatsScreen() }
+            composable("admin_users") { AdminUsersScreen(adminViewModel) }
+            composable("admin_products") { AdminProductsScreen(adminViewModel) }
+            composable("admin_orders") { AdminOrdersScreen(adminViewModel) }
+            composable("admin_feedback") { AdminFeedbackScreen(adminViewModel) }
+            composable("admin_stats") { AdminStatsScreen(adminViewModel) }
         }
     }
 

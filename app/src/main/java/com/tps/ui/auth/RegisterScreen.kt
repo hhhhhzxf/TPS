@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -100,15 +99,11 @@ fun RegisterScreen(
             shape = RoundedCornerShape(18.dp)
         )
 
-        OutlinedTextField(
+        PasswordTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("密码（6-20位）") },
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            shape = RoundedCornerShape(18.dp)
+            label = "密码（6-20位）",
+            modifier = Modifier.fillMaxWidth()
         )
 
         if (uiState.error != null) {

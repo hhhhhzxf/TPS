@@ -4,8 +4,11 @@ package com.tps.ui.product
  * 文件说明：商品模块界面，负责商品浏览、详情或发布流程的 Compose 展示。
  */
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -34,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tps.data.remote.dto.ProductCommentDto
 import com.tps.ui.theme.AppAsyncImage
@@ -418,6 +422,23 @@ private fun ProductCommentsCard(
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         commentImageUris = (commentImageUris + uris).distinct().take(3)
     }
+    val launchCameraCapture = {
+        try {
+            val uri = createCameraImageUri(context, "comment-image-")
+            pendingCameraUri = uri
+            cameraLauncher.launch(uri)
+        } catch (e: Exception) {
+            pendingCameraUri = null
+            Toast.makeText(context, "无法打开相机：${e.message ?: "请检查权限"}", Toast.LENGTH_SHORT).show()
+        }
+    }
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            launchCameraCapture()
+        } else {
+            Toast.makeText(context, "需要相机权限才能拍照", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     if (showCommentSheet) {
         ModalBottomSheet(
@@ -469,9 +490,11 @@ private fun ProductCommentsCard(
                         item {
                             OutlinedButton(
                                 onClick = {
-                                    val uri = createCameraImageUri(context, "comment-image-")
-                                    pendingCameraUri = uri
-                                    cameraLauncher.launch(uri)
+                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                        launchCameraCapture()
+                                    } else {
+                                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                    }
                                 },
                                 modifier = Modifier.height(76.dp)
                             ) {
@@ -679,6 +702,23 @@ private fun ReportProductSheet(
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         evidenceUris = (evidenceUris + uris).distinct().take(3)
     }
+    val launchCameraCapture = {
+        try {
+            val uri = createCameraImageUri(context, "report-evidence-")
+            pendingCameraUri = uri
+            cameraLauncher.launch(uri)
+        } catch (e: Exception) {
+            pendingCameraUri = null
+            Toast.makeText(context, "无法打开相机：${e.message ?: "请检查权限"}", Toast.LENGTH_SHORT).show()
+        }
+    }
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            launchCameraCapture()
+        } else {
+            Toast.makeText(context, "需要相机权限才能拍照", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
@@ -718,9 +758,11 @@ private fun ReportProductSheet(
                     item {
                         OutlinedButton(
                             onClick = {
-                                val uri = createCameraImageUri(context, "report-evidence-")
-                                pendingCameraUri = uri
-                                cameraLauncher.launch(uri)
+                                if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                    launchCameraCapture()
+                                } else {
+                                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                }
                             },
                             modifier = Modifier.height(76.dp)
                         ) {
