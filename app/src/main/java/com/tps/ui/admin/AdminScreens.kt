@@ -11,6 +11,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tps.data.remote.dto.FeedbackDto
@@ -36,6 +39,7 @@ import com.tps.ui.theme.StatusPill
 @Composable
 fun AdminUsersScreen(viewModel: AdminViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
     var keyword by remember { mutableStateOf(uiState.userKeyword) }
     var statusMenuExpanded by remember { mutableStateOf(false) }
     var sortMenuExpanded by remember { mutableStateOf(false) }
@@ -53,9 +57,21 @@ fun AdminUsersScreen(viewModel: AdminViewModel = hiltViewModel()) {
         viewModel.loadUsers()
     }
 
-    Scaffold(containerColor = Color.Transparent, topBar = { TopAppBar(title = { Text("用户管理", fontWeight = FontWeight.Bold) }) }) { padding ->
+    LaunchedEffect(uiState.error, uiState.successMessage) {
+        val message = uiState.error ?: uiState.successMessage
+        if (message != null) {
+            snackbarHostState.showSnackbar(message)
+            viewModel.consumeMessages()
+        }
+    }
+
+    Scaffold(
+        containerColor = Color.Transparent,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = { TopAppBar(title = { Text("用户管理", fontWeight = FontWeight.Bold) }) }
+    ) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            item { MarketHeroCard("用户治理", "查看信用与账号状态，快速封禁异常用户。") }
+            item { MarketHeroCard("用户治理", "管理禁言、禁发与账号封禁，控制异常行为的影响范围。") }
             item {
                 MarketCard {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -144,24 +160,59 @@ fun AdminUsersScreen(viewModel: AdminViewModel = hiltViewModel()) {
             item { SectionHeader("用户列表", "${uiState.users.size} 人") }
             items(uiState.users) { user ->
                 MarketCard {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(user.nickname, fontWeight = FontWeight.Bold)
-                            Text("手机号：${user.phone ?: "-"} | 学号：${user.studentId ?: "-"}", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("信用分：${user.creditScore}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(user.nickname, fontWeight = FontWeight.Bold)
+                                Text("手机号：${user.phone ?: "-"} | 学号：${user.studentId ?: "-"}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("信用分：${user.creditScore} | 商品数：${user.productCount}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            StatusPill(statusLabel(user.status), if (user.status == "BANNED") MaterialTheme.colorScheme.error else MarketOrange)
                         }
-                        StatusPill(user.status, if (user.status == "BANNED") MaterialTheme.colorScheme.error else MarketOrange)
-                        IconButton(onClick = { viewModel.banUser(user.id, user.status == "BANNED") }) {
-                            Icon(
-                                if (user.status == "BANNED") Icons.Default.Block else Icons.Default.Block,
-                                contentDescription = null,
-                                tint = if (user.status == "BANNED") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                            AssistChip(
+                                onClick = { viewModel.setUserMuted(user.id, !user.muted) },
+                                label = { Text(if (user.muted) "解除禁言" else "禁止发言") },
+                                colors = AssistChipDefaults.assistChipColors(
+                                    labelColor = if (user.muted) MarketOrange else MaterialTheme.colorScheme.onSurface
+                                )
                             )
+                            AssistChip(
+                                onClick = { viewModel.setUserPublishBanned(user.id, !user.publishBanned) },
+                                label = { Text(if (user.publishBanned) "解除禁发" else "禁止发布") },
+                                colors = AssistChipDefaults.assistChipColors(
+                                    labelColor = if (user.publishBanned) MarketOrange else MaterialTheme.colorScheme.onSurface
+                                )
+                            )
+                            AssistChip(
+                                onClick = { viewModel.banUser(user.id, user.status == "BANNED") },
+                                leadingIcon = { Icon(Icons.Default.Block, null, modifier = Modifier.size(18.dp)) },
+                                label = { Text(if (user.status == "BANNED") "解除封禁" else "封禁账号") },
+                                colors = AssistChipDefaults.assistChipColors(
+                                    labelColor = if (user.status == "BANNED") MarketOrange else MaterialTheme.colorScheme.error,
+                                    leadingIconContentColor = if (user.status == "BANNED") MarketOrange else MaterialTheme.colorScheme.error
+                                )
+                            )
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            if (user.muted) StatusPill("已禁言", MaterialTheme.colorScheme.error)
+                            if (user.publishBanned) StatusPill("已禁发", MaterialTheme.colorScheme.error)
+                            if (user.role == "ADMIN") StatusPill("管理员", MarketOrange)
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun statusLabel(status: String): String {
+    return when (status) {
+        "ACTIVE" -> "正常"
+        "BANNED" -> "已封禁"
+        "DEACTIVATED" -> "已注销"
+        else -> status
     }
 }
 
@@ -188,6 +239,18 @@ fun AdminProductsScreen(viewModel: AdminViewModel = hiltViewModel()) {
             snackbarHostState.showSnackbar(message)
             viewModel.consumeMessages()
         }
+    }
+
+    uiState.selectedProduct?.let { product ->
+        AdminProductDetailDialog(
+            product = product,
+            operating = uiState.operatingProductId == product.id,
+            onDismiss = viewModel::dismissProductDetail,
+            onTakedown = {
+                pendingTakedown = product
+                takedownReason = product.takedownReason.orEmpty()
+            }
+        )
     }
 
     pendingTakedown?.let { product ->
@@ -345,6 +408,8 @@ fun AdminProductsScreen(viewModel: AdminViewModel = hiltViewModel()) {
                     AdminListedProductCard(
                         product = product,
                         operating = uiState.operatingProductId == product.id,
+                        loadingDetail = uiState.loadingProductDetailId == product.id,
+                        onViewDetail = { viewModel.loadProductDetail(product.id) },
                         onTakedown = {
                             pendingTakedown = product
                             takedownReason = ""
@@ -378,6 +443,11 @@ fun AdminProductsScreen(viewModel: AdminViewModel = hiltViewModel()) {
                         }
                         Text("举报原因：${report.reason ?: "无"}", style = MaterialTheme.typography.bodySmall)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = { viewModel.loadProductDetail(report.productId) }) {
+                                Icon(Icons.Default.Visibility, null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text("查看商品")
+                            }
                             OutlinedButton(onClick = {
                                 pendingReportReject = report
                                 reportRejectReason = ""
@@ -415,6 +485,8 @@ private fun SectionHeader(title: String, count: String) {
 private fun AdminListedProductCard(
     product: ProductDto,
     operating: Boolean,
+    loadingDetail: Boolean,
+    onViewDetail: () -> Unit,
     onTakedown: () -> Unit
 ) {
     Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
@@ -439,11 +511,19 @@ private fun AdminListedProductCard(
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (operating) {
+                if (operating || loadingDetail) {
                     CircularProgressIndicator(modifier = Modifier.padding(end = 12.dp), strokeWidth = 2.dp)
+                }
+                OutlinedButton(
+                    onClick = onViewDetail,
+                    enabled = !loadingDetail
+                ) {
+                    Icon(Icons.Default.Visibility, null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("详情")
                 }
                 Button(
                     onClick = onTakedown,
@@ -454,6 +534,94 @@ private fun AdminListedProductCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AdminProductDetailDialog(
+    product: ProductDto,
+    operating: Boolean,
+    onDismiss: () -> Unit,
+    onTakedown: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            if (product.status != "SOLD") {
+                Button(
+                    onClick = onTakedown,
+                    enabled = !operating,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(if (product.status == "OFF") "更新下架原因" else "强制下架")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Icon(Icons.Default.Close, null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("关闭")
+            }
+        },
+        title = { Text(product.title, maxLines = 2, overflow = TextOverflow.Ellipsis) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                AppAsyncImage(
+                    url = product.imageUrls.firstOrNull(),
+                    contentDescription = product.title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFFFFE1D2)),
+                    contentScale = ContentScale.Crop
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("¥${product.price}", fontWeight = FontWeight.ExtraBold, color = MarketOrange, style = MaterialTheme.typography.headlineSmall)
+                    Spacer(Modifier.weight(1f))
+                    StatusPill(productStatusLabel(product.status), if (product.status == "OFF") MaterialTheme.colorScheme.error else MarketOrange)
+                }
+                Text(product.description ?: "暂无描述", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                HorizontalDivider()
+                DetailLine("卖家", "${product.sellerNickname}（ID ${product.userId}）")
+                DetailLine("分类/成色", "${product.category ?: "未分类"} / ${product.condition ?: "未标注"}")
+                DetailLine("地点", product.location ?: "未填写")
+                DetailLine("浏览/收藏", "${product.viewCount} / ${product.favoriteCount}")
+                DetailLine("创建时间", product.createdAt ?: "-")
+                if (!product.takedownReason.isNullOrBlank()) {
+                    Text(
+                        "下架原因：${product.takedownReason}",
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFFFFF0F0))
+                            .padding(10.dp)
+                    )
+                    DetailLine("下架管理员", product.takedownBy?.toString() ?: "-")
+                    DetailLine("下架时间", product.takedownAt ?: "-")
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun DetailLine(label: String, value: String) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, fontWeight = FontWeight.Medium)
+    }
+}
+
+@Composable
+private fun productStatusLabel(status: String): String {
+    return when (status) {
+        "ON_SALE", "AVAILABLE" -> "在售"
+        "OFF" -> "已下架"
+        "SOLD" -> "已售出"
+        else -> status
     }
 }
 

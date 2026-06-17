@@ -1,0 +1,29 @@
+SET @ddl = (
+  SELECT IF(
+    COUNT(*) = 0,
+    'ALTER TABLE users ADD COLUMN muted TINYINT DEFAULT 0 COMMENT ''是否禁止发言''',
+    'SELECT 1'
+  )
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'users'
+    AND COLUMN_NAME = 'muted'
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @ddl = (
+  SELECT IF(
+    COUNT(*) = 0,
+    'ALTER TABLE users ADD COLUMN publish_banned TINYINT DEFAULT 0 COMMENT ''是否禁止发布商品''',
+    'SELECT 1'
+  )
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'users'
+    AND COLUMN_NAME = 'publish_banned'
+);
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;

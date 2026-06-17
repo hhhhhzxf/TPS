@@ -62,6 +62,8 @@ public class DataInitializer implements ApplicationRunner {
         execute("ALTER TABLE users ADD COLUMN student_id VARCHAR(32) NULL COMMENT '学号'");
         execute("CREATE UNIQUE INDEX uk_users_student_id ON users(student_id)");
         execute("ALTER TABLE users ADD COLUMN shipping_address VARCHAR(255) NULL COMMENT '收货地址'");
+        execute("ALTER TABLE users ADD COLUMN muted TINYINT DEFAULT 0 COMMENT '是否禁止发言'");
+        execute("ALTER TABLE users ADD COLUMN publish_banned TINYINT DEFAULT 0 COMMENT '是否禁止发布商品'");
         execute("ALTER TABLE users MODIFY COLUMN status ENUM('ACTIVE','BANNED','DEACTIVATED') DEFAULT 'ACTIVE' COMMENT '账号状态'");
 
         execute("ALTER TABLE products ADD COLUMN favorite_count INT DEFAULT 0 COMMENT '收藏数'");

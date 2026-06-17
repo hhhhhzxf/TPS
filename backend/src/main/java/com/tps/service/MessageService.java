@@ -9,6 +9,7 @@ import com.tps.dto.message.MessageResponse;
 import com.tps.entity.Conversation;
 import com.tps.entity.Message;
 import com.tps.entity.Notification;
+import com.tps.entity.User;
 import com.tps.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -74,6 +75,11 @@ public class MessageService {
     public Message sendMessage(Long senderId, Long conversationId, String content, String type) {
         if (content == null || content.isBlank()) {
             throw new IllegalArgumentException("消息内容不能为空");
+        }
+        User sender = userRepository.findById(senderId)
+                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+        if (Boolean.TRUE.equals(sender.getMuted())) {
+            throw new IllegalArgumentException("账号已被禁止发言，请联系管理员");
         }
 
         // 无论消息是从 REST 兜底发来还是从 WebSocket 控制器转过来，最终都会复用同一套持久化逻辑。

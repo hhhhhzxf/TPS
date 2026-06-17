@@ -62,6 +62,8 @@ data class UserProfile(
     val shippingAddress: String?,
     val role: String,
     val status: String,
+    val muted: Boolean = false,
+    val publishBanned: Boolean = false,
     val productCount: Int,
     val reviewCount: Long = 0
 )

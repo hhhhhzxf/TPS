@@ -19,6 +19,8 @@ public class UserProfileResponse {
     private Integer creditScore;
     private String role;
     private String status;
+    private boolean muted;
+    private boolean publishBanned;
     private int productCount;
     private long reviewCount;
 }

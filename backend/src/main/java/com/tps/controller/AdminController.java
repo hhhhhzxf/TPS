@@ -47,6 +47,30 @@ public class AdminController {
         return ApiResponse.success();
     }
 
+    @PutMapping("/users/{id}/mute")
+    public ApiResponse<?> muteUser(@PathVariable Long id) {
+        adminService.muteUser(id);
+        return ApiResponse.success();
+    }
+
+    @PutMapping("/users/{id}/unmute")
+    public ApiResponse<?> unmuteUser(@PathVariable Long id) {
+        adminService.unmuteUser(id);
+        return ApiResponse.success();
+    }
+
+    @PutMapping("/users/{id}/publish-ban")
+    public ApiResponse<?> publishBanUser(@PathVariable Long id) {
+        adminService.publishBanUser(id);
+        return ApiResponse.success();
+    }
+
+    @PutMapping("/users/{id}/publish-unban")
+    public ApiResponse<?> publishUnbanUser(@PathVariable Long id) {
+        adminService.publishUnbanUser(id);
+        return ApiResponse.success();
+    }
+
     @GetMapping("/products/reported")
     public ApiResponse<?> getReportedProducts(
             @RequestParam(defaultValue = "0") int page,
@@ -73,6 +97,11 @@ public class AdminController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         return ApiResponse.success(PageResponse.from(adminService.getProducts(status, keyword, category, sellerId, page, size)));
+    }
+
+    @GetMapping("/products/{id}")
+    public ApiResponse<?> getProductDetail(@PathVariable Long id) {
+        return ApiResponse.success(adminService.getProductDetail(id));
     }
 
     @PutMapping("/products/{id}/takedown")

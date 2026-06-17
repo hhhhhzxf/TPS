@@ -7,6 +7,7 @@ package com.tps.ui.admin
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tps.data.remote.api.ApiService
+import com.tps.data.remote.apiErrorMessage
 import com.tps.data.remote.dto.AdminStats
 import com.tps.data.remote.dto.FeedbackDto
 import com.tps.data.remote.dto.FeedbackReplyRequest
@@ -28,6 +29,7 @@ data class AdminUiState(
     val userSort: String = "createdAt",
     val userDirection: String = "desc",
     val listedProducts: List<ProductDto> = emptyList(),
+    val selectedProduct: ProductDto? = null,
     val reportedProducts: List<ReportDto> = emptyList(),
     val orders: List<OrderDto> = emptyList(),
     val feedback: List<FeedbackDto> = emptyList(),
@@ -36,6 +38,7 @@ data class AdminUiState(
     val error: String? = null,
     val successMessage: String? = null,
     val operatingProductId: Long? = null,
+    val loadingProductDetailId: Long? = null,
     val operatingOrderId: Long? = null,
     val operatingFeedbackId: Long? = null
 )
@@ -142,9 +145,36 @@ class AdminViewModel @Inject constructor(
             try {
                 if (isBanned) apiService.adminUnbanUser(userId)
                 else apiService.adminBanUser(userId)
+                _uiState.value = _uiState.value.copy(successMessage = if (isBanned) "账号已解除封禁" else "账号已封禁")
                 loadUsers()
             } catch (e: Exception) {
                 setAdminError("更新用户状态", e)
+            }
+        }
+    }
+
+    fun setUserMuted(userId: Long, muted: Boolean) {
+        viewModelScope.launch {
+            try {
+                if (muted) apiService.adminMuteUser(userId)
+                else apiService.adminUnmuteUser(userId)
+                _uiState.value = _uiState.value.copy(successMessage = if (muted) "用户已禁止发言" else "用户已解除禁言")
+                loadUsers()
+            } catch (e: Exception) {
+                setAdminError("更新禁言状态", e)
+            }
+        }
+    }
+
+    fun setUserPublishBanned(userId: Long, publishBanned: Boolean) {
+        viewModelScope.launch {
+            try {
+                if (publishBanned) apiService.adminPublishBanUser(userId)
+                else apiService.adminPublishUnbanUser(userId)
+                _uiState.value = _uiState.value.copy(successMessage = if (publishBanned) "用户已禁止发布商品" else "用户已解除禁发")
+                loadUsers()
+            } catch (e: Exception) {
+                setAdminError("更新发布权限", e)
             }
         }
     }
@@ -181,7 +211,8 @@ class AdminViewModel @Inject constructor(
                 apiService.adminTakedownProduct(productId, reason.trim())
                 _uiState.value = _uiState.value.copy(
                     successMessage = "商品已强制下架",
-                    operatingProductId = null
+                    operatingProductId = null,
+                    selectedProduct = _uiState.value.selectedProduct?.takeUnless { it.id == productId }
                 )
                 loadListedProducts()
                 loadStats()
@@ -189,6 +220,29 @@ class AdminViewModel @Inject constructor(
                 setAdminError("下架商品", e, clearProductOperation = true)
             }
         }
+    }
+
+    fun loadProductDetail(productId: Long) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                loadingProductDetailId = productId,
+                error = null,
+                successMessage = null
+            )
+            try {
+                val resp = apiService.adminGetProduct(productId)
+                _uiState.value = _uiState.value.copy(
+                    selectedProduct = resp.data,
+                    loadingProductDetailId = null
+                )
+            } catch (e: Exception) {
+                setAdminError("加载商品详情", e, clearProductDetail = true)
+            }
+        }
+    }
+
+    fun dismissProductDetail() {
+        _uiState.value = _uiState.value.copy(selectedProduct = null)
     }
 
     fun approveRefund(orderId: Long) {
@@ -285,12 +339,14 @@ class AdminViewModel @Inject constructor(
         action: String,
         error: Exception,
         clearProductOperation: Boolean = false,
+        clearProductDetail: Boolean = false,
         clearOrderOperation: Boolean = false,
         clearFeedbackOperation: Boolean = false
     ) {
         _uiState.value = _uiState.value.copy(
             error = adminErrorMessage(action, error),
             operatingProductId = if (clearProductOperation) null else _uiState.value.operatingProductId,
+            loadingProductDetailId = if (clearProductDetail) null else _uiState.value.loadingProductDetailId,
             operatingOrderId = if (clearOrderOperation) null else _uiState.value.operatingOrderId,
             operatingFeedbackId = if (clearFeedbackOperation) null else _uiState.value.operatingFeedbackId
         )
@@ -298,7 +354,10 @@ class AdminViewModel @Inject constructor(
 }
 
 internal fun adminErrorMessage(action: String, error: Exception): String {
+    val apiMessage = apiErrorMessage(error)
     val detail = when {
+        !apiMessage.isNullOrBlank() -> apiMessage
+        error is HttpException && error.code() == 400 -> "请求参数或账号状态异常，请检查后重试"
         error is HttpException && error.code() == 401 -> "登录状态刷新失败，请检查网络后重试"
         error is HttpException && error.code() == 403 -> "当前账号没有管理员权限"
         error is HttpException -> "HTTP ${error.code()}"

@@ -68,11 +68,7 @@ public class AdminService {
 
     @Transactional
     public void banUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
-        if (user.getRole() == User.Role.ADMIN) {
-            throw new IllegalArgumentException("管理员账号不能被封禁");
-        }
+        User user = getMutableUser(userId, "管理员账号不能被封禁");
         user.setStatus(User.UserStatus.BANNED);
         userRepository.save(user);
     }
@@ -87,6 +83,36 @@ public class AdminService {
             return;
         }
         user.setStatus(User.UserStatus.ACTIVE);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void muteUser(Long userId) {
+        User user = getMutableUser(userId, "管理员账号不能被禁言");
+        user.setMuted(true);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void unmuteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+        user.setMuted(false);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void publishBanUser(Long userId) {
+        User user = getMutableUser(userId, "管理员账号不能被禁止发布商品");
+        user.setPublishBanned(true);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void publishUnbanUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+        user.setPublishBanned(false);
         userRepository.save(user);
     }
 
@@ -119,6 +145,10 @@ public class AdminService {
         };
         return productRepository.findAll(spec, pageable(page, size, "createdAt"))
                 .map(product -> productService.toResponse(product, null));
+    }
+
+    public ProductResponse getProductDetail(Long productId) {
+        return productService.getDetailWithoutIncrement(productId, null);
     }
 
     public Page<ReportResponse> getReportedProducts(int page, int size) {
@@ -269,6 +299,8 @@ public class AdminService {
         response.setCreditScore(user.getCreditScore());
         response.setRole(user.getRole().name());
         response.setStatus(user.getStatus().name());
+        response.setMuted(Boolean.TRUE.equals(user.getMuted()));
+        response.setPublishBanned(Boolean.TRUE.equals(user.getPublishBanned()));
         response.setProductCount(productRepository.findByUserId(user.getId()).size());
         return response;
     }
@@ -343,5 +375,14 @@ public class AdminService {
 
     private boolean hasFilter(String value) {
         return value != null && !value.isBlank() && !"ALL".equalsIgnoreCase(value.trim());
+    }
+
+    private User getMutableUser(Long userId, String adminMessage) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+        if (user.getRole() == User.Role.ADMIN) {
+            throw new IllegalArgumentException(adminMessage);
+        }
+        return user;
     }
 }

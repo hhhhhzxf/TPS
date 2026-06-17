@@ -233,6 +233,18 @@ interface ApiService {
     @PUT("api/admin/users/{id}/unban")
     suspend fun adminUnbanUser(@Path("id") id: Long): ApiResponse<Unit>
 
+    @PUT("api/admin/users/{id}/mute")
+    suspend fun adminMuteUser(@Path("id") id: Long): ApiResponse<Unit>
+
+    @PUT("api/admin/users/{id}/unmute")
+    suspend fun adminUnmuteUser(@Path("id") id: Long): ApiResponse<Unit>
+
+    @PUT("api/admin/users/{id}/publish-ban")
+    suspend fun adminPublishBanUser(@Path("id") id: Long): ApiResponse<Unit>
+
+    @PUT("api/admin/users/{id}/publish-unban")
+    suspend fun adminPublishUnbanUser(@Path("id") id: Long): ApiResponse<Unit>
+
     @GET("api/admin/reports")
     suspend fun adminGetReports(
         @Query("status") status: String? = "PENDING",
@@ -251,6 +263,9 @@ interface ApiService {
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 20
     ): ApiResponse<PageResponse<ProductDto>>
+
+    @GET("api/admin/products/{id}")
+    suspend fun adminGetProduct(@Path("id") id: Long): ApiResponse<ProductDto>
 
     @PUT("api/admin/products/{id}/takedown")
     suspend fun adminTakedownProduct(

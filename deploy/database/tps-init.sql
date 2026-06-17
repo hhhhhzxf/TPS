@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS users (
   bio           VARCHAR(200) COMMENT '简介',
   location      VARCHAR(100) COMMENT '所在地',
   shipping_address VARCHAR(255) COMMENT '收货地址',
+  muted         TINYINT DEFAULT 0 COMMENT '是否禁止发言',
+  publish_banned TINYINT DEFAULT 0 COMMENT '是否禁止发布商品',
   created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

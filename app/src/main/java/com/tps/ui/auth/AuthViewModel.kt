@@ -7,6 +7,7 @@ package com.tps.ui.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tps.data.remote.api.ApiService
+import com.tps.data.remote.apiErrorMessage
 import com.tps.data.remote.dto.LoginRequest
 import com.tps.data.remote.dto.RegisterRequest
 import com.tps.util.TokenManager
@@ -14,6 +15,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import javax.inject.Inject
 
 data class AuthUiState(
@@ -62,7 +64,7 @@ class AuthViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(isLoading = false, error = resp.message)
                 }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false, error = e.message)
+                _uiState.value = _uiState.value.copy(isLoading = false, error = loginErrorMessage(e))
             }
         }
     }
@@ -93,5 +95,17 @@ class AuthViewModel @Inject constructor(
 
     fun resetState() {
         _uiState.value = AuthUiState()
+    }
+}
+
+internal fun loginErrorMessage(error: Exception): String {
+    apiErrorMessage(error)?.let { return it }
+    return when {
+        error is HttpException && error.code() == 400 -> "账号被封禁，请联系管理员"
+        error is HttpException && error.code() == 401 -> "登录状态已过期，请重新登录"
+        error is HttpException && error.code() == 403 -> "当前账号无权登录该入口"
+        error is HttpException -> "登录失败：HTTP ${error.code()}"
+        !error.message.isNullOrBlank() -> error.message!!
+        else -> "登录失败，请检查网络后重试"
     }
 }

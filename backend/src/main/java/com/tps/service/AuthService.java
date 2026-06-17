@@ -63,7 +63,7 @@ public class AuthService {
             userRepository.save(user);
         }
         if (user.getStatus() != User.UserStatus.ACTIVE) {
-            throw new IllegalArgumentException("账号不可用");
+            throw new IllegalArgumentException("账号被封禁，请联系管理员");
         }
         if (!passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {
             throw new IllegalArgumentException("密码错误");
@@ -79,7 +79,7 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
         if (user.getStatus() != User.UserStatus.ACTIVE) {
-            throw new IllegalArgumentException("账号不可用");
+            throw new IllegalArgumentException("账号被封禁，请联系管理员");
         }
         return buildLoginResponse(user);
     }

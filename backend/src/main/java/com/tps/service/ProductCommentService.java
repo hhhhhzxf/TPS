@@ -8,6 +8,7 @@ import com.tps.dto.product.ProductCommentRequest;
 import com.tps.dto.product.ProductCommentResponse;
 import com.tps.entity.Product;
 import com.tps.entity.ProductComment;
+import com.tps.entity.User;
 import com.tps.exception.BusinessException;
 import com.tps.repository.ProductCommentRepository;
 import com.tps.repository.ProductRepository;
@@ -46,6 +47,11 @@ public class ProductCommentService {
     @Transactional
     public ProductCommentResponse create(Long productId, Long userId, ProductCommentRequest request) {
         ensureProductExists(productId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+        if (Boolean.TRUE.equals(user.getMuted())) {
+            throw new IllegalArgumentException("账号已被禁止发言，请联系管理员");
+        }
         String content = request.getContent() == null ? "" : request.getContent().trim();
         if (content.isBlank()) {
             throw new IllegalArgumentException("评论内容不能为空");

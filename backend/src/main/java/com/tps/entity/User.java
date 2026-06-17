@@ -52,6 +52,12 @@ public class User {
     @Column(name = "shipping_address", length = 255)
     private String shippingAddress;
 
+    @Column(nullable = false)
+    private Boolean muted = false;
+
+    @Column(name = "publish_banned", nullable = false)
+    private Boolean publishBanned = false;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 

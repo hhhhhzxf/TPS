@@ -91,6 +91,20 @@ class BackendIntegrationTest {
     }
 
     @Test
+    void bannedUserLoginReturnsReadableMessage() throws Exception {
+        register("13800138615", "banned-login");
+        User user = userRepository.findByPhone("13800138615").orElseThrow();
+        user.setStatus(User.UserStatus.BANNED);
+        userRepository.save(user);
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("phone", "13800138615", "password", "123456"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("账号被封禁，请联系管理员"));
+    }
+
+    @Test
     void productUploadFavoriteAndPagingUseMobileFriendlyDtos() throws Exception {
         String token = register("13800138001", "seller").at("/data/token").asText();
         String imageUrl = uploadPng(token);
@@ -380,6 +394,98 @@ class BackendIntegrationTest {
                         .header("Authorization", "Bearer " + restoredAdminToken))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("管理员账号不能注销"));
+    }
+
+    @Test
+    void adminUserRestrictionsBlockSpeechPublishingAndSupportRelease() throws Exception {
+        String sellerToken = register("13800138610", "restricted-seller").at("/data/token").asText();
+        Long sellerId = userRepository.findByPhone("13800138610").orElseThrow().getId();
+        Long productId = createProduct(sellerToken, null);
+        String buyerToken = register("13800138611", "restricted-buyer").at("/data/token").asText();
+        Long buyerId = userRepository.findByPhone("13800138611").orElseThrow().getId();
+        String adminToken = createAdmin("13800138612");
+
+        mockMvc.perform(put("/api/admin/users/{id}/mute", buyerId)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/products/{productId}/comments", productId)
+                        .header("Authorization", "Bearer " + buyerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("content", "hello"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("账号已被禁止发言，请联系管理员"));
+
+        Long conversationId = objectMapper.readTree(mockMvc.perform(post("/api/messages/conversation")
+                        .header("Authorization", "Bearer " + buyerToken)
+                        .param("targetUserId", sellerId.toString())
+                        .param("productId", productId.toString()))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString()).at("/data/id").asLong();
+
+        mockMvc.perform(post("/api/messages/{conversationId}", conversationId)
+                        .header("Authorization", "Bearer " + buyerToken)
+                        .param("content", "hello"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("账号已被禁止发言，请联系管理员"));
+
+        mockMvc.perform(put("/api/admin/users/{id}/unmute", buyerId)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/products/{productId}/comments", productId)
+                        .header("Authorization", "Bearer " + buyerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("content", "hello again"))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(put("/api/admin/users/{id}/publish-ban", sellerId)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/products")
+                        .header("Authorization", "Bearer " + sellerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("title", "Book", "description", "A book", "price", new BigDecimal("10.00"), "category", "book", "condition", "GOOD", "location", "Shanghai"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("账号已被禁止发布商品，请联系管理员"));
+
+        mockMvc.perform(put("/api/admin/users/{id}/publish-unban", sellerId)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/products")
+                        .header("Authorization", "Bearer " + sellerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("title", "Book", "description", "A book", "price", new BigDecimal("10.00"), "category", "book", "condition", "GOOD", "location", "Shanghai"))))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/admin/users")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("keyword", "restricted-buyer"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].muted").value(false))
+                .andExpect(jsonPath("$.data.content[0].publishBanned").value(false));
+    }
+
+    @Test
+    void adminCanViewProductDetailAfterTakedown() throws Exception {
+        String sellerToken = register("13800138613", "detail-seller").at("/data/token").asText();
+        Long productId = createProduct(sellerToken, null);
+        String adminToken = createAdmin("13800138614");
+
+        mockMvc.perform(put("/api/admin/products/{id}/takedown", productId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("reason", "违规商品"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/admin/products/{id}", productId)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(productId))
+                .andExpect(jsonPath("$.data.status").value("OFF"))
+                .andExpect(jsonPath("$.data.takedownReason").value("违规商品"))
+                .andExpect(jsonPath("$.data.sellerNickname").value("detail-seller"));
     }
 
     @Test

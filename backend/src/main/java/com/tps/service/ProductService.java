@@ -71,6 +71,9 @@ public class ProductService {
     public ProductResponse create(Long userId, ProductRequest req) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+        if (Boolean.TRUE.equals(user.getPublishBanned())) {
+            throw new IllegalArgumentException("账号已被禁止发布商品，请联系管理员");
+        }
         Product product = new Product();
         product.setUserId(userId);
         product.setTitle(req.getTitle());
