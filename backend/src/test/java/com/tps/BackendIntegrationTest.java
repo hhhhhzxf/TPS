@@ -67,6 +67,18 @@ class BackendIntegrationTest {
     }
 
     @Test
+    void loginIgnoresStaleAuthorizationHeader() throws Exception {
+        register("13800138600", "stale-login");
+
+        mockMvc.perform(post("/api/auth/login")
+                        .header("Authorization", "Bearer stale-or-expired-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("phone", "13800138600", "password", "123456"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.token", not(emptyString())));
+    }
+
+    @Test
     void productUploadFavoriteAndPagingUseMobileFriendlyDtos() throws Exception {
         String token = register("13800138001", "seller").at("/data/token").asText();
         String imageUrl = uploadPng(token);
@@ -426,6 +438,47 @@ class BackendIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content", hasSize(1)))
                 .andExpect(jsonPath("$.data.content[0].reason").value("疑似违规"));
+    }
+
+    @Test
+    void reporterCanSubmitNewPendingReportAfterPriorReportWasRejected() throws Exception {
+        String sellerToken = register("13800138147", "seller").at("/data/token").asText();
+        String reporterToken = register("13800138148", "reporter").at("/data/token").asText();
+        String adminToken = createAdmin("13800138149");
+        Long productId = createProduct(sellerToken, null);
+
+        mockMvc.perform(post("/api/products/{id}/report", productId)
+                        .header("Authorization", "Bearer " + reporterToken)
+                        .param("reason", "第一次举报"))
+                .andExpect(status().isOk());
+
+        String reportBody = mockMvc.perform(get("/api/admin/reports")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("status", "PENDING")
+                        .param("productId", String.valueOf(productId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content", hasSize(1)))
+                .andReturn().getResponse().getContentAsString();
+        Long reportId = objectMapper.readTree(reportBody).at("/data/content/0/id").asLong();
+
+        mockMvc.perform(put("/api/admin/reports/{id}/handle", reportId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("takedown", "false")
+                        .param("reason", "证据不足"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/products/{id}/report", productId)
+                        .header("Authorization", "Bearer " + reporterToken)
+                        .param("reason", "再次举报"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/admin/reports")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("status", "PENDING")
+                        .param("productId", String.valueOf(productId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content", hasSize(1)))
+                .andExpect(jsonPath("$.data.content[0].reason").value("再次举报"));
     }
 
     @Test

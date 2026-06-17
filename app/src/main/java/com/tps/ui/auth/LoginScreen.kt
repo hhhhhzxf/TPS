@@ -32,6 +32,10 @@ fun LoginScreen(
     var account by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    LaunchedEffect(Unit) {
+        viewModel.resetState()
+    }
+
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) onLoginSuccess(uiState.isAdmin)
     }

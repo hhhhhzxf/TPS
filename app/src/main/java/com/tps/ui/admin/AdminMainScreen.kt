@@ -34,6 +34,7 @@ fun AdminMainScreen(
 ) {
     val navController = rememberNavController()
     val profileState by profileViewModel.uiState.collectAsState()
+    val adminState by adminViewModel.uiState.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
     val tabs = listOf(
         TabItem("用户", Icons.Default.People, "admin_users"),
@@ -46,6 +47,10 @@ fun AdminMainScreen(
 
     LaunchedEffect(profileState.loggedOut) {
         if (profileState.loggedOut) onLogout()
+    }
+
+    LaunchedEffect(adminState.sessionExpired) {
+        if (adminState.sessionExpired) onLogout()
     }
 
     Scaffold(

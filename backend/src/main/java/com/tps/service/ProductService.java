@@ -9,6 +9,7 @@ import com.tps.dto.product.ProductResponse;
 import com.tps.entity.Notification;
 import com.tps.entity.Product;
 import com.tps.entity.ProductImage;
+import com.tps.entity.Report;
 import com.tps.entity.User;
 import com.tps.exception.BusinessException;
 import com.tps.repository.*;
@@ -228,10 +229,10 @@ public class ProductService {
         if (product.getUserId().equals(userId)) {
             throw new IllegalArgumentException("不能举报自己的商品");
         }
-        if (reportRepository.existsByReporterIdAndProductId(userId, productId)) {
+        if (reportRepository.existsByReporterIdAndProductIdAndStatus(userId, productId, Report.ReportStatus.PENDING)) {
             return;
         }
-        com.tps.entity.Report report = new com.tps.entity.Report();
+        Report report = new Report();
         report.setReporterId(userId);
         report.setProductId(productId);
         report.setReason(reason);

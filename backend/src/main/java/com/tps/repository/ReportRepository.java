@@ -13,5 +13,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 public interface ReportRepository extends JpaRepository<Report, Long>, JpaSpecificationExecutor<Report> {
     Page<Report> findByStatus(Report.ReportStatus status, Pageable pageable);
     boolean existsByReporterIdAndProductId(Long reporterId, Long productId);
+    boolean existsByReporterIdAndProductIdAndStatus(Long reporterId, Long productId, Report.ReportStatus status);
     long countByStatus(Report.ReportStatus status);
 }

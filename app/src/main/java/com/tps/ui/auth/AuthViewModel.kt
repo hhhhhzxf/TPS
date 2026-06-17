@@ -46,7 +46,8 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val resp = apiService.login(LoginRequest(phone = phone, password = password))
+                tokenManager.clear()
+                val resp = apiService.login(LoginRequest(phone = phone.trim(), password = password.trim()))
                 if (resp.code == 200 && resp.data != null) {
                     tokenManager.saveToken(resp.data.token)
                     tokenManager.saveUserId(resp.data.userId)
@@ -86,5 +87,9 @@ class AuthViewModel @Inject constructor(
 
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
+    }
+
+    fun resetState() {
+        _uiState.value = AuthUiState()
     }
 }

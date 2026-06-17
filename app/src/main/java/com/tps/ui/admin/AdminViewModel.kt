@@ -14,6 +14,7 @@ import com.tps.data.remote.dto.OrderDto
 import com.tps.data.remote.dto.ProductDto
 import com.tps.data.remote.dto.ReportDto
 import com.tps.data.remote.dto.UserProfile
+import com.tps.util.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,6 +36,7 @@ data class AdminUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val successMessage: String? = null,
+    val sessionExpired: Boolean = false,
     val operatingProductId: Long? = null,
     val operatingOrderId: Long? = null,
     val operatingFeedbackId: Long? = null
@@ -42,7 +44,8 @@ data class AdminUiState(
 
 @HiltViewModel
 class AdminViewModel @Inject constructor(
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdminUiState())
@@ -72,7 +75,7 @@ class AdminViewModel @Inject constructor(
                     userDirection = direction
                 )
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = adminErrorMessage("加载用户", e))
+                setAdminError("加载用户", e)
             }
         }
     }
@@ -84,7 +87,7 @@ class AdminViewModel @Inject constructor(
                 val resp = apiService.adminGetProducts(status = "ON_SALE")
                 _uiState.value = _uiState.value.copy(listedProducts = resp.data?.content ?: emptyList())
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = adminErrorMessage("加载商品", e))
+                setAdminError("加载商品", e)
             }
         }
     }
@@ -96,7 +99,7 @@ class AdminViewModel @Inject constructor(
                 val resp = apiService.adminGetReports()
                 _uiState.value = _uiState.value.copy(reportedProducts = resp.data?.content ?: emptyList())
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = adminErrorMessage("加载举报", e))
+                setAdminError("加载举报", e)
             }
         }
     }
@@ -108,7 +111,7 @@ class AdminViewModel @Inject constructor(
                 val resp = apiService.adminGetOrders()
                 _uiState.value = _uiState.value.copy(orders = resp.data?.content ?: emptyList())
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = adminErrorMessage("加载订单", e))
+                setAdminError("加载订单", e)
             }
         }
     }
@@ -120,7 +123,7 @@ class AdminViewModel @Inject constructor(
                 val resp = apiService.adminGetStats()
                 _uiState.value = _uiState.value.copy(stats = resp.data)
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = adminErrorMessage("加载统计", e))
+                setAdminError("加载统计", e)
             }
         }
     }
@@ -132,7 +135,7 @@ class AdminViewModel @Inject constructor(
                 val resp = apiService.adminGetFeedback(status = status)
                 _uiState.value = _uiState.value.copy(feedback = resp.data?.content ?: emptyList())
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = adminErrorMessage("加载反馈", e))
+                setAdminError("加载反馈", e)
             }
         }
     }
@@ -144,7 +147,7 @@ class AdminViewModel @Inject constructor(
                 else apiService.adminBanUser(userId)
                 loadUsers()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = adminErrorMessage("更新用户状态", e))
+                setAdminError("更新用户状态", e)
             }
         }
     }
@@ -161,7 +164,7 @@ class AdminViewModel @Inject constructor(
                 loadReportedProducts()
                 loadListedProducts()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = adminErrorMessage("处理举报", e))
+                setAdminError("处理举报", e)
             }
         }
     }
@@ -186,7 +189,7 @@ class AdminViewModel @Inject constructor(
                 loadListedProducts()
                 loadStats()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = adminErrorMessage("下架商品", e), operatingProductId = null)
+                setAdminError("下架商品", e, clearProductOperation = true)
             }
         }
     }
@@ -207,7 +210,7 @@ class AdminViewModel @Inject constructor(
                 loadOrders()
                 loadStats()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = adminErrorMessage("通过退款", e), operatingOrderId = null)
+                setAdminError("通过退款", e, clearOrderOperation = true)
             }
         }
     }
@@ -228,7 +231,7 @@ class AdminViewModel @Inject constructor(
                 loadOrders()
                 loadStats()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = adminErrorMessage("驳回退款", e), operatingOrderId = null)
+                setAdminError("驳回退款", e, clearOrderOperation = true)
             }
         }
     }
@@ -252,7 +255,7 @@ class AdminViewModel @Inject constructor(
                 )
                 loadFeedback()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = adminErrorMessage("回复反馈", e), operatingFeedbackId = null)
+                setAdminError("回复反馈", e, clearFeedbackOperation = true)
             }
         }
     }
@@ -272,7 +275,7 @@ class AdminViewModel @Inject constructor(
                 )
                 loadFeedback()
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = adminErrorMessage("更新反馈状态", e), operatingFeedbackId = null)
+                setAdminError("更新反馈状态", e, clearFeedbackOperation = true)
             }
         }
     }
@@ -280,11 +283,33 @@ class AdminViewModel @Inject constructor(
     fun consumeMessages() {
         _uiState.value = _uiState.value.copy(error = null, successMessage = null)
     }
+
+    private fun setAdminError(
+        action: String,
+        error: Exception,
+        clearProductOperation: Boolean = false,
+        clearOrderOperation: Boolean = false,
+        clearFeedbackOperation: Boolean = false
+    ) {
+        if (isAdminSessionExpired(error)) {
+            tokenManager.clear()
+        }
+        _uiState.value = _uiState.value.copy(
+            error = adminErrorMessage(action, error),
+            sessionExpired = isAdminSessionExpired(error),
+            operatingProductId = if (clearProductOperation) null else _uiState.value.operatingProductId,
+            operatingOrderId = if (clearOrderOperation) null else _uiState.value.operatingOrderId,
+            operatingFeedbackId = if (clearFeedbackOperation) null else _uiState.value.operatingFeedbackId
+        )
+    }
 }
+
+internal fun isAdminSessionExpired(error: Exception): Boolean =
+    error is HttpException && error.code() == 401
 
 internal fun adminErrorMessage(action: String, error: Exception): String {
     val detail = when {
-        error is HttpException && error.code() == 401 -> "管理员登录已过期，请重新登录"
+        isAdminSessionExpired(error) -> "管理员登录已过期，请重新登录"
         error is HttpException && error.code() == 403 -> "当前账号没有管理员权限"
         error is HttpException -> "HTTP ${error.code()}"
         !error.message.isNullOrBlank() -> error.message!!
