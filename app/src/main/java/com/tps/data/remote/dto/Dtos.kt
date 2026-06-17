@@ -45,6 +45,10 @@ data class LoginResponse(
     val role: String
 )
 
+data class RefreshTokenRequest(
+    val refreshToken: String
+)
+
 // User
 data class UserProfile(
     val id: Long,

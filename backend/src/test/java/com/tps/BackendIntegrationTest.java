@@ -345,6 +345,32 @@ class BackendIntegrationTest {
     }
 
     @Test
+    void adminAccountsCannotBeDisabledOrLockedOut() throws Exception {
+        String adminToken = createAdmin("13800138601");
+        User adminUser = userRepository.findByPhone("13800138601").orElseThrow();
+
+        mockMvc.perform(put("/api/admin/users/{id}/ban", adminUser.getId())
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("管理员账号不能被封禁"));
+
+        adminUser.setStatus(User.UserStatus.BANNED);
+        userRepository.save(adminUser);
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(Map.of("phone", "13800138601", "password", "123456"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.token", not(emptyString())));
+
+        String restoredAdminToken = login("13800138601").at("/data/token").asText();
+        mockMvc.perform(post("/api/users/me/deactivate")
+                        .header("Authorization", "Bearer " + restoredAdminToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("管理员账号不能注销"));
+    }
+
+    @Test
     void reportAndAdminHandlingFlowWorks() throws Exception {
         String sellerToken = register("13800138103", "seller").at("/data/token").asText();
         String reporterToken = register("13800138104", "reporter").at("/data/token").asText();

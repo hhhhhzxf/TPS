@@ -5,6 +5,7 @@ package com.tps.di
  */
 
 import com.google.gson.Gson
+import com.tps.data.remote.AuthRefreshAuthenticator
 import com.tps.data.remote.FallbackBaseUrlInterceptor
 import com.tps.data.remote.NetworkEndpointConfig
 import com.tps.data.remote.api.ApiService
@@ -26,7 +27,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttp(tokenManager: TokenManager): OkHttpClient =
+    fun provideOkHttp(tokenManager: TokenManager, gson: Gson): OkHttpClient =
         OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val req = chain.request().newBuilder()
@@ -34,6 +35,7 @@ object NetworkModule {
                 if (token != null) req.addHeader("Authorization", "Bearer $token")
                 chain.proceed(req.build())
             }
+            .authenticator(AuthRefreshAuthenticator(tokenManager, gson))
             .addInterceptor(FallbackBaseUrlInterceptor(NetworkEndpointConfig.apiBaseUrls))
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY

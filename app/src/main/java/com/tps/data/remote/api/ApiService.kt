@@ -20,6 +20,9 @@ interface ApiService {
     @POST("api/auth/login")
     suspend fun login(@Body req: LoginRequest): ApiResponse<LoginResponse>
 
+    @POST("api/auth/refresh")
+    suspend fun refresh(@Body req: RefreshTokenRequest): ApiResponse<LoginResponse>
+
     // User
     @GET("api/users/{id}")
     suspend fun getUserProfile(@Path("id") id: Long): ApiResponse<UserProfile>

@@ -14,7 +14,6 @@ import com.tps.data.remote.dto.OrderDto
 import com.tps.data.remote.dto.ProductDto
 import com.tps.data.remote.dto.ReportDto
 import com.tps.data.remote.dto.UserProfile
-import com.tps.util.TokenManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +35,6 @@ data class AdminUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val successMessage: String? = null,
-    val sessionExpired: Boolean = false,
     val operatingProductId: Long? = null,
     val operatingOrderId: Long? = null,
     val operatingFeedbackId: Long? = null
@@ -44,8 +42,7 @@ data class AdminUiState(
 
 @HiltViewModel
 class AdminViewModel @Inject constructor(
-    private val apiService: ApiService,
-    private val tokenManager: TokenManager
+    private val apiService: ApiService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdminUiState())
@@ -291,12 +288,8 @@ class AdminViewModel @Inject constructor(
         clearOrderOperation: Boolean = false,
         clearFeedbackOperation: Boolean = false
     ) {
-        if (isAdminSessionExpired(error)) {
-            tokenManager.clear()
-        }
         _uiState.value = _uiState.value.copy(
             error = adminErrorMessage(action, error),
-            sessionExpired = isAdminSessionExpired(error),
             operatingProductId = if (clearProductOperation) null else _uiState.value.operatingProductId,
             operatingOrderId = if (clearOrderOperation) null else _uiState.value.operatingOrderId,
             operatingFeedbackId = if (clearFeedbackOperation) null else _uiState.value.operatingFeedbackId
@@ -304,12 +297,9 @@ class AdminViewModel @Inject constructor(
     }
 }
 
-internal fun isAdminSessionExpired(error: Exception): Boolean =
-    error is HttpException && error.code() == 401
-
 internal fun adminErrorMessage(action: String, error: Exception): String {
     val detail = when {
-        isAdminSessionExpired(error) -> "管理员登录已过期，请重新登录"
+        error is HttpException && error.code() == 401 -> "登录状态刷新失败，请检查网络后重试"
         error is HttpException && error.code() == 403 -> "当前账号没有管理员权限"
         error is HttpException -> "HTTP ${error.code()}"
         !error.message.isNullOrBlank() -> error.message!!

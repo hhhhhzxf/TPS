@@ -53,6 +53,10 @@ public class AuthService {
         User user = userRepository.findByPhone(phone)
                 .or(() -> userRepository.findByStudentId(loginName))
                 .orElseThrow(() -> new IllegalArgumentException("账号未注册"));
+        if (user.getRole() == User.Role.ADMIN && user.getStatus() != User.UserStatus.ACTIVE) {
+            user.setStatus(User.UserStatus.ACTIVE);
+            userRepository.save(user);
+        }
         if (user.getStatus() != User.UserStatus.ACTIVE) {
             throw new IllegalArgumentException("账号不可用");
         }

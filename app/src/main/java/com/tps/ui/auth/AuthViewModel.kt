@@ -50,6 +50,7 @@ class AuthViewModel @Inject constructor(
                 val resp = apiService.login(LoginRequest(phone = phone.trim(), password = password.trim()))
                 if (resp.code == 200 && resp.data != null) {
                     tokenManager.saveToken(resp.data.token)
+                    tokenManager.saveRefreshToken(resp.data.refreshToken)
                     tokenManager.saveUserId(resp.data.userId)
                     tokenManager.saveRole(resp.data.role)
                     _uiState.value = _uiState.value.copy(
@@ -73,6 +74,7 @@ class AuthViewModel @Inject constructor(
                 val resp = apiService.register(RegisterRequest(phone, password, code, studentId, nickname))
                 if (resp.code == 200 && resp.data != null) {
                     tokenManager.saveToken(resp.data.token)
+                    tokenManager.saveRefreshToken(resp.data.refreshToken)
                     tokenManager.saveUserId(resp.data.userId)
                     tokenManager.saveRole(resp.data.role)
                     _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)

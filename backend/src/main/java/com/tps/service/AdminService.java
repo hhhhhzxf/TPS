@@ -70,6 +70,9 @@ public class AdminService {
     public void banUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+        if (user.getRole() == User.Role.ADMIN) {
+            throw new IllegalArgumentException("管理员账号不能被封禁");
+        }
         user.setStatus(User.UserStatus.BANNED);
         userRepository.save(user);
     }
@@ -78,6 +81,11 @@ public class AdminService {
     public void unbanUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+        if (user.getRole() == User.Role.ADMIN) {
+            user.setStatus(User.UserStatus.ACTIVE);
+            userRepository.save(user);
+            return;
+        }
         user.setStatus(User.UserStatus.ACTIVE);
         userRepository.save(user);
     }

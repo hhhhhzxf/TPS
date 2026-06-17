@@ -54,6 +54,9 @@ public class UserService {
     public void deactivate(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+        if (user.getRole() == User.Role.ADMIN) {
+            throw new IllegalArgumentException("管理员账号不能注销");
+        }
         user.setStatus(User.UserStatus.DEACTIVATED);
         userRepository.save(user);
     }
